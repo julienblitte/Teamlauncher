@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<folder name="My accesses">
+  <folder name="Group 1">
+    <remote protocol="ftp" name="my ftp server" login="admin" password="cGFzcw==" host="192.168.0.1" />
+    <remote protocol="sftp" name="my sftp server" login="admin" password="cGFzcw==" host="192.168.0.2" />
+    <remote protocol="http" name="my http server" login="admin" password="cGFzcw==" host="192.168.0.3" />
+    <remote protocol="https" name="my https server" login="admin" password="cGFzcw==" host="192.168.0.4" />
+    <remote protocol="rdp" name="my remote desktop access" login="admin" password="cGFzcw==" host="192.168.0.5" />
+    <remote protocol="scp" name="my scp access" login="admin" password="cGFzcw==" host="192.168.0.6" />
+    <folder name="Subgroup a">
+      <remote protocol="ssh" name="my ssh access" login="admin" password="cGFzcw==" host="192.168.0.7" />
+      <remote protocol="teamviewer" name="my teamviewer access" login="" password="cGFzcw==" host="123 456 789" />
+    </folder>
+    <folder name="Subgroup b">
+      <remote protocol="vnc" name="my vnc access" login="" password="cGFzcw==" host="192.168.0.8" />
+      <remote protocol="telnet" name="my telnet access" login="" host="192.168.0.9" />
+    </folder>
+  </folder>
+</folder>
