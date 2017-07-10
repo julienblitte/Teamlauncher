@@ -9,13 +9,13 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class SCP : RemoteProtocol
+    class ProtoSCP : RemoteProtocol
     {
-        protected string WinSCPExe;
-        protected string WinSCPVer;
+        protected string clientExe;
+        protected string clientVer;
         protected bool is64;
 
-        public SCP()
+        public ProtoSCP()
         {
             icon = Properties.Resources.scp;
             name = "scp";
@@ -28,27 +28,30 @@ namespace Teamlauncher
             {
                 using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\winscp3_is1"))
                 {
-                    WinSCPExe = (string)registryKey.GetValue("Inno Setup: App Path");
-                    WinSCPVer = (string)registryKey.GetValue("DisplayVersion");
+                    clientExe = (string)registryKey.GetValue("Inno Setup: App Path");
+                    clientVer = (string)registryKey.GetValue("DisplayVersion");
                 }
-                if (WinSCPExe != "")
+                if (clientExe != "")
                 {
-                    WinSCPExe.Replace("\\\\", "\\");
-                    if (!WinSCPExe.EndsWith("\\"))
+                    if (clientExe.StartsWith("\"") && clientExe.EndsWith("\""))
                     {
-                        WinSCPExe += "\\";
+                        clientExe = clientExe.Substring(1, clientExe.Length - 2);
                     }
-                    WinSCPExe += "WinSCP.exe";
+                    if (!clientExe.EndsWith("\\"))
+                    {
+                        clientExe += "\\";
+                    }
+                    clientExe += "WinSCP.exe";
                 }
             }
             catch (Exception)
             {
-                WinSCPExe = "";
+                clientExe = "";
             }
         }
         public override void run(string login, string password, string host, int port, int paramSet)
         {
-            if (WinSCPExe != "")
+            if (clientExe != "")
             {
                 String WinSCPParameter = "";
 
@@ -75,7 +78,7 @@ namespace Teamlauncher
                             Uri.EscapeDataString(login), Uri.EscapeDataString(password), host, port);
                         break;
                 }
-                Process.Start(WinSCPExe, WinSCPParameter);
+                Process.Start(clientExe, WinSCPParameter);
             }
             else
             {

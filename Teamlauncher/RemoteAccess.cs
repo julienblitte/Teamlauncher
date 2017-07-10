@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Teamlauncher
 {
-    public class RemoteAccess
+    public class ProtoRemoteAccess
     {
         public string host;
         public int port;

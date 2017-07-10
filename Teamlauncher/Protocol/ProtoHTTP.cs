@@ -9,11 +9,11 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class HTTP : RemoteProtocol
+    class ProtoHTTP : RemoteProtocol
     {
         protected bool secure;
 
-        public HTTP(bool secure = true)
+        public ProtoHTTP(bool secure = true)
         {
             icon = Properties.Resources.http;
             this.secure = secure;

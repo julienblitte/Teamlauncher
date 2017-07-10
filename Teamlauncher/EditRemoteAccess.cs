@@ -14,7 +14,7 @@ namespace Teamlauncher
     {
         private Dictionary<string, RemoteProtocol> protocolList;
         public string RemoteName;
-        public RemoteAccess RemoteDetail;
+        public ProtoRemoteAccess RemoteDetail;
 
         public EditRemoteAccess(Dictionary<string, RemoteProtocol> protocolList)
         {
@@ -40,7 +40,7 @@ namespace Teamlauncher
             }
 
             RemoteName = name.Text;
-            RemoteDetail = new RemoteAccess();
+            RemoteDetail = new ProtoRemoteAccess();
             RemoteDetail.protocol = protocolList[protocol.Text];
             if (password.Text != "")
             {
@@ -82,7 +82,7 @@ namespace Teamlauncher
             this.DialogResult = DialogResult.Cancel;
         }
 
-        public DialogResult ShowDialog(string inName, RemoteAccess ra)
+        public DialogResult ShowDialog(string inName, ProtoRemoteAccess ra)
         {
             name.Text = inName;
             host.Text = ra.host;

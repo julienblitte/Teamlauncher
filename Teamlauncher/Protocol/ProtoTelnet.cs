@@ -10,28 +10,28 @@ using System.IO;
 
 namespace Teamlauncher
 {
-    class Telnet : RemoteProtocol
+    class ProtocolTelnet : RemoteProtocol
     {
-        protected string telnetExe;
+        protected string clientExe;
 
-        public Telnet()
+        public ProtocolTelnet()
         {
             icon = Properties.Resources.telnet;
             name = "telnet";
 
-            telnetExe = Environment.SystemDirectory;
-            if (!telnetExe.EndsWith("\\"))
+            clientExe = Environment.SystemDirectory;
+            if (!clientExe.EndsWith("\\"))
             {
-                telnetExe += "\\";
+                clientExe += "\\";
             }
-            telnetExe += "telnet.exe";
+            clientExe += "telnet.exe";
         }
 
         public override void run(string login, string password, string host, int port, int paramSet)
         {
             try
             {
-                Process.Start(telnetExe, ((paramSet & RemoteProtocol.ParamPort) == 0  ? String.Format("\"{0}\"", host) : String.Format("\"{0}\" {1}", host, port)));
+                Process.Start(clientExe, ((paramSet & RemoteProtocol.ParamPort) == 0  ? String.Format("\"{0}\"", host) : String.Format("\"{0}\" {1}", host, port)));
             }
             catch (Exception)
             {

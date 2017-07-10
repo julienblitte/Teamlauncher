@@ -9,8 +9,8 @@ namespace Teamlauncher
 {
     class TreeNodeAccess : TreeNode
     {
-        protected RemoteAccess _remoteAccess;
-        public RemoteAccess remoteAccess
+        protected ProtoRemoteAccess _remoteAccess;
+        public ProtoRemoteAccess remoteAccess
         {
             set {
                 _remoteAccess = value;
@@ -27,7 +27,7 @@ namespace Teamlauncher
             this.ImageIndex = 0;
         }
 
-        public TreeNodeAccess(RemoteAccess remoteAccess, string text) : base(text)
+        public TreeNodeAccess(ProtoRemoteAccess remoteAccess, string text) : base(text)
         {
             this._remoteAccess = remoteAccess;
             this.SelectedImageIndex = remoteAccess.protocol.id;

@@ -9,15 +9,15 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class FTP : RemoteProtocol
+    class ProtoFTP : RemoteProtocol
     {
-        protected string FileZillaExe;
-        protected string FileZillaVer;
+        protected string clientExe;
+        protected string clientVer;
         protected bool secure;
 
         protected bool is64;
 
-        public FTP(bool secure = true)
+        public ProtoFTP(bool secure = true)
         {
             icon = Properties.Resources.ftp;
             this.secure = secure;
@@ -31,27 +31,30 @@ namespace Teamlauncher
             {
                 using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\FileZilla Client"))
                 {
-                    FileZillaExe = (string)registryKey.GetValue("InstallLocation");
-                    FileZillaVer = (string)registryKey.GetValue("DisplayVersion");
+                    clientExe = (string)registryKey.GetValue("InstallLocation");
+                    clientVer = (string)registryKey.GetValue("DisplayVersion");
                 }
-                if (FileZillaExe != "")
+                if (clientExe != "")
                 {
-                    FileZillaExe.Replace("\\\\", "\\");
-                    if (!FileZillaExe.EndsWith("\\"))
+                    if (clientExe.StartsWith("\"") && clientExe.EndsWith("\""))
                     {
-                        FileZillaExe += "\\";
+                        clientExe = clientExe.Substring(1, clientExe.Length - 2);
                     }
-                    FileZillaExe += "filezilla.exe";
+                    if (!clientExe.EndsWith("\\"))
+                    {
+                        clientExe += "\\";
+                    }
+                    clientExe += "filezilla.exe";
                 }
             }
             catch (Exception)
             {
-                FileZillaExe = "";
+                clientExe = "";
             }
         }
         public override void run(string login, string password, string host, int port, int paramSet)
         {
-            if (FileZillaExe != "")
+            if (clientExe != "")
             {
                 String FileZillaParameters = (secure ? "sftp" : "ftp") + "://";
 
@@ -79,7 +82,7 @@ namespace Teamlauncher
                         break;
                 }
                 FileZillaParameters = "\"" + FileZillaParameters + "\"";
-                Process.Start(FileZillaExe, FileZillaParameters);
+                Process.Start(clientExe, FileZillaParameters);
             }
             else
             {

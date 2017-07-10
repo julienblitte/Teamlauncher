@@ -14,6 +14,7 @@
     <folder name="Subgroup b">
       <remote protocol="vnc" name="my vnc access" login="" password="cGFzcw==" host="192.168.0.8" />
       <remote protocol="telnet" name="my telnet access" login="" host="192.168.0.9" />
+      <remote protocol="anydesk" name="my anydesk access" login="" host="123 456 789" />
     </folder>
   </folder>
 </folder>

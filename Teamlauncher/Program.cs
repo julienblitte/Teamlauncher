@@ -26,7 +26,7 @@ namespace Teamlauncher
                     Application.Run();
                 }
             }
-            else if (getInstance() != 0)
+            else if (getInstance() > 0)
             {
                 MessageBox.Show("The application is already running", "Teamlauncher",MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

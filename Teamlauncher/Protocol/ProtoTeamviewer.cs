@@ -9,21 +9,21 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class Teamviewer : RemoteProtocol
+    class ProtoTeamviewer : RemoteProtocol
     {
-        protected string teamviewerExe;
-        protected string teamviewerVer;
+        protected string clientExe;
+        protected string clientVer;
         protected bool is64;
 
-        public Teamviewer()
+        public ProtoTeamviewer()
         {
             icon = Properties.Resources.teamviewer;
             name = "teamviewer";
 
             /* default values */
             is64 = false;
-            teamviewerExe = "";
-            teamviewerVer = "";
+            clientExe = "";
+            clientVer = "";
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
@@ -33,37 +33,40 @@ namespace Teamlauncher
             {
                 using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\TeamViewer"))
                 {
-                    teamviewerExe = (string)registryKey.GetValue("InstallLocation");
-                    teamviewerVer = (string)registryKey.GetValue("DisplayVersion");
+                    clientExe = (string)registryKey.GetValue("InstallLocation");
+                    clientVer = (string)registryKey.GetValue("DisplayVersion");
                 }
-                if (teamviewerExe != "")
+                if (clientExe != "")
                 {
-                    teamviewerExe.Replace("\\\\", "\\");
-                    if (!teamviewerExe.EndsWith("\\"))
+                    if (clientExe.StartsWith("\"") && clientExe.EndsWith("\""))
                     {
-                        teamviewerExe += "\\";
+                        clientExe = clientExe.Substring(1, clientExe.Length - 2);
                     }
-                    teamviewerExe += "teamviewer.exe";
+                    if (!clientExe.EndsWith("\\"))
+                    {
+                        clientExe += "\\";
+                    }
+                    clientExe += "teamviewer.exe";
                 }
             }
             catch (Exception)
             {
-                teamviewerExe = "";
+                clientExe = "";
             }
         }
         public override void run(string login, string password, string host, int port, int paramSet)
         {
-            if (teamviewerExe != "")
+            if (clientExe != "")
             {
                 if ((paramSet & RemoteProtocol.ParamPassword) > 0)
                 {
-                    Process.Start(teamviewerExe,
+                    Process.Start(clientExe,
                         String.Format("-i \"{0}\" --Password \"{1}\"", host, password)
                     );
                 }
                 else
                 {
-                    Process.Start(teamviewerExe,
+                    Process.Start(clientExe,
                         String.Format("-i \"{0}\"", host)
                     );
                 }

@@ -10,21 +10,21 @@ using System.IO;
 
 namespace Teamlauncher
 {
-    class RDP : RemoteProtocol
+    class ProtoRDP : RemoteProtocol
     {
-        protected string mstsc;
+        protected string clientExe;
 
-        public RDP()
+        public ProtoRDP()
         {
             icon = Properties.Resources.rdp;
             name = "rdp";
 
-            mstsc = Environment.SystemDirectory;
-            if (!mstsc.EndsWith("\\"))
+            clientExe = Environment.SystemDirectory;
+            if (!clientExe.EndsWith("\\"))
             {
-                mstsc += "\\";
+                clientExe += "\\";
             }
-            mstsc += "mstsc.exe";
+            clientExe += "mstsc.exe";
         }
 
         public override void run(string login, string password, string host, int port, int paramSet)
@@ -47,7 +47,7 @@ namespace Teamlauncher
 
             try
             {
-                Process.Start(mstsc, "\"" + temp + "\" /admin");
+                Process.Start(clientExe, "\"" + temp + "\" /admin");
             }
             catch (Exception)
             {

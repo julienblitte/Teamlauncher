@@ -10,14 +10,14 @@ using System.IO;
 
 namespace Teamlauncher
 {
-    class VNC : RemoteProtocol
+    class ProtoVNC : RemoteProtocol
     {
         protected string UltraVNCExe;
         protected string UltraVNCVer;
         protected string TightVNCExe;
         protected bool is64;
 
-        public VNC()
+        public ProtoVNC()
         {
             icon = Properties.Resources.vnc;
             name = "vnc";
@@ -29,14 +29,17 @@ namespace Teamlauncher
             try
             {
                 using (var hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-                using (var key = hklm.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Ultravnc2_is1"))
+                using (var key = hklm.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\Ultravnc2_is1"))
                 {
                     UltraVNCExe = (string)key.GetValue("Inno Setup: App Path");
                     UltraVNCVer = (string)key.GetValue("DisplayVersion");
                 }
                 if (UltraVNCExe != "")
                 {
-                    UltraVNCExe.Replace("\\\\", "\\");
+                    if (UltraVNCExe.StartsWith("\"") && UltraVNCExe.EndsWith("\""))
+                    {
+                        UltraVNCExe = UltraVNCExe.Substring(1, UltraVNCExe.Length - 2);
+                    }
                     if (!UltraVNCExe.EndsWith("\\"))
                     {
                         UltraVNCExe += "\\";

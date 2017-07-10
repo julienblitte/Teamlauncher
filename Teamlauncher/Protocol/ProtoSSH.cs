@@ -10,27 +10,27 @@ using System.IO;
 
 namespace Teamlauncher
 {
-    class SSH : RemoteProtocol
+    class ProtoSSH : RemoteProtocol
     {
-        protected string puttyExe;
+        protected string clientExe;
 
-        public SSH()
+        public ProtoSSH()
         {
             icon = Properties.Resources.ssh;
             name = "ssh";
 
             if (File.Exists(Properties.Settings.Default.Putty))
             {
-                puttyExe = Properties.Settings.Default.Putty;
+                clientExe = Properties.Settings.Default.Putty;
             }
             else
             {
-                puttyExe = "";
+                clientExe = "";
             }
         }
         public override void run(string login, string password, string host, int port, int paramSet)
         {
-            if (puttyExe != "")
+            if (clientExe != "")
             {
                 String puttyParameters = "";
 
@@ -52,7 +52,7 @@ namespace Teamlauncher
                     puttyParameters += String.Format(" -pw \"{0}\"", password);
                 }
 
-                Process.Start(puttyExe, puttyParameters);
+                Process.Start(clientExe, puttyParameters);
             }
             else
             {

@@ -31,16 +31,17 @@ namespace Teamlauncher
 
             protocols = new Dictionary<string, RemoteProtocol>();
 
-            registerProtocol(new Teamviewer());
-            registerProtocol(new SSH());
-            registerProtocol(new SCP());
-            registerProtocol(new HTTP());
-            registerProtocol(new HTTP(false));
-            registerProtocol(new FTP());
-            registerProtocol(new FTP(false));
-            registerProtocol(new RDP());
-            registerProtocol(new VNC());
-            registerProtocol(new Telnet());
+            registerProtocol(new ProtoTeamviewer());
+            registerProtocol(new ProtoSSH());
+            registerProtocol(new ProtoSCP());
+            registerProtocol(new ProtoHTTP());
+            registerProtocol(new ProtoHTTP(false));
+            registerProtocol(new ProtoFTP());
+            registerProtocol(new ProtoFTP(false));
+            registerProtocol(new ProtoRDP());
+            registerProtocol(new ProtoVNC());
+            registerProtocol(new ProtocolTelnet());
+            registerProtocol(new ProtoAnyDesk());
 
             setVisible(visible);
         }
@@ -235,7 +236,7 @@ namespace Teamlauncher
 
                         if (inXmlNode.Attributes["host"] != null)
                         {
-                            RemoteAccess access = new RemoteAccess();
+                            ProtoRemoteAccess access = new ProtoRemoteAccess();
                             access.login = inXmlNode.Attributes["login"]?.Value;
                             access.host = inXmlNode.Attributes["host"]?.Value;
 
@@ -266,7 +267,7 @@ namespace Teamlauncher
             string masterPassword;
             string localPassword;
 
-            RemoteAccess ra;
+            ProtoRemoteAccess ra;
 
             if (node.isFolder())
             {
@@ -455,7 +456,7 @@ namespace Teamlauncher
 
         private string saveDatabaseSub(TreeNodeAccess currentNode, int level=0)
         {
-            RemoteAccess ra;
+            ProtoRemoteAccess ra;
             String result, indent;
 
             indent = new String('\t', level);
@@ -627,7 +628,7 @@ namespace Teamlauncher
             else
             {
                 string localPassword;
-                RemoteAccess ra;
+                ProtoRemoteAccess ra;
 
                 ra = currentNode.remoteAccess;
                 if ((ra.password != null) && (ra.password != ""))
