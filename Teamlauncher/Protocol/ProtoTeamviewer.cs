@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,11 +43,7 @@ namespace Teamlauncher
                     {
                         clientExe = clientExe.Substring(1, clientExe.Length - 2);
                     }
-                    if (!clientExe.EndsWith("\\"))
-                    {
-                        clientExe += "\\";
-                    }
-                    clientExe += "teamviewer.exe";
+                    clientExe = Path.Combine(clientExe, "teamviewer.exe");
                 }
             }
             catch (Exception)

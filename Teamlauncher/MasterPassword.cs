@@ -12,12 +12,13 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
+    public delegate Action<bool> something(bool passwordCached);
+
     public partial class MasterPassword : Form
     {
         private static MasterPassword instance = null;
         private string _master;
-
-        public Action onExpire;
+        public something onCacheChanged;
 
         public string master
         {
@@ -34,6 +35,7 @@ namespace Teamlauncher
                 }
                 expirationTimer.Stop();
                 expirationTimer.Start();
+                notifyDelegates();
 
                 return this._master;
             }
@@ -46,6 +48,7 @@ namespace Teamlauncher
                 hash = hasher.compute(value);
                 this._master = value;
                 expirationTimer.Start();
+                notifyDelegates();
             }
         }
         public string hash { get; set; }
@@ -76,11 +79,17 @@ namespace Teamlauncher
             this._master = NO_MASTER_ENTERED;
             expirationTimer.Stop();
 
-            if (onExpire != null)
-            {
-                onExpire();
-            }
+            notifyDelegates();
         }
+
+        public void notifyDelegates()
+        {
+			if (_master == NO_MASTER_ENABLED)
+				return;
+
+			onCacheChanged?.Invoke(_master != NO_MASTER_ENTERED);
+        }
+
 
         public static string checkPasswordConformity(string localPassword)
         {
@@ -133,6 +142,7 @@ namespace Teamlauncher
             this._master = conformPassword;
             password.Text = "";
             expirationTimer.Start();
+            notifyDelegates();
             this.DialogResult = DialogResult.OK;
         }
 

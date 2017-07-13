@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
 
 namespace Teamlauncher
@@ -52,16 +53,58 @@ namespace Teamlauncher
         }
         public override void run(string login, string password, string host, int port, int paramSet)
         {
-            if (clientExe != "")
-            {
-                //TODO: add support of password
-                Process.Start(clientExe,
-                    String.Format("\"{0}\"", host));
-            }
-            else
-            {
-                MessageBox.Show("Unable to find installed version of AnyDesk!\nIs it installed?");
-            }
+			if (clientExe != "")
+			{
+				ProcessStartInfo startInfo;
+				
+				startInfo = new ProcessStartInfo();
+				startInfo.UseShellExecute = false;
+				startInfo.RedirectStandardOutput = false;
+				startInfo.RedirectStandardInput = true;
+				startInfo.RedirectStandardError = false;
+				startInfo.FileName = clientExe;
+
+				if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+				{
+					startInfo.Arguments = host + " --with-password";
+
+					Process process = new Process();
+					process.StartInfo = startInfo;
+					process.Start();
+
+					process.StandardInput.WriteLine(password+"\n");
+				}
+				else
+				{
+					startInfo.Arguments = host;
+
+					Process process = new Process();
+					process.StartInfo = startInfo;
+					process.Start();
+				}
+				/*
+
+				if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+				{
+					var temp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".bat");
+
+					File.WriteAllText(temp,
+						String.Format("@echo {0}|\"{1}\" {2} --with-password\n", password, clientExe, host));
+
+					Process.Start(temp,
+						String.Format("\"{0}\"", host));
+				}
+				else
+				{
+					Process.Start(clientExe,
+						String.Format("\"{0}\"", host));
+				}
+				*/
+			}
+			else
+			{
+				MessageBox.Show("Unable to find installed version of AnyDesk!\nIs it installed?");
+			}
         }
     }
 }

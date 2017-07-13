@@ -19,12 +19,7 @@ namespace Teamlauncher
             icon = Properties.Resources.rdp;
             name = "rdp";
 
-            clientExe = Environment.SystemDirectory;
-            if (!clientExe.EndsWith("\\"))
-            {
-                clientExe += "\\";
-            }
-            clientExe += "mstsc.exe";
+            clientExe = Path.Combine(Environment.SystemDirectory, "mstsc.exe");
         }
 
         public override void run(string login, string password, string host, int port, int paramSet)

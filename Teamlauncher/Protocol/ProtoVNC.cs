@@ -40,11 +40,7 @@ namespace Teamlauncher
                     {
                         UltraVNCExe = UltraVNCExe.Substring(1, UltraVNCExe.Length - 2);
                     }
-                    if (!UltraVNCExe.EndsWith("\\"))
-                    {
-                        UltraVNCExe += "\\";
-                    }
-                    UltraVNCExe += "vncviewer.exe";
+					UltraVNCExe = Path.Combine(UltraVNCExe, "vncviewer.exe");
                 }
             }
             catch (Exception)

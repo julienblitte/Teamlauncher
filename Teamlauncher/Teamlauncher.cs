@@ -43,7 +43,10 @@ namespace Teamlauncher
             registerProtocol(new ProtocolTelnet());
             registerProtocol(new ProtoAnyDesk());
 
-            setVisible(visible);
+			MasterPassword.getInstance().onCacheChanged += OnPasswordInCache;
+				//OnPasswordInCache;
+
+			setVisible(visible);
         }
 
         private void createTrayIcon()
@@ -80,6 +83,17 @@ namespace Teamlauncher
         private void onClick(object sender, EventArgs e)
         {
             setVisible(!Visible);
+        }
+
+        public Action<bool> OnPasswordInCache(bool passwordCached)
+        {
+			Text = Text.Replace("*", "");
+            if (passwordCached)
+            {
+                this.Text += "*";
+            }
+
+			return null;
         }
 
         private void OnExit(object sender, EventArgs e)

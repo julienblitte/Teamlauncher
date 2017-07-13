@@ -19,12 +19,7 @@ namespace Teamlauncher
             icon = Properties.Resources.telnet;
             name = "telnet";
 
-            clientExe = Environment.SystemDirectory;
-            if (!clientExe.EndsWith("\\"))
-            {
-                clientExe += "\\";
-            }
-            clientExe += "telnet.exe";
+            clientExe = Path.Combine(Environment.SystemDirectory, "telnet.exe");
         }
 
         public override void run(string login, string password, string host, int port, int paramSet)
