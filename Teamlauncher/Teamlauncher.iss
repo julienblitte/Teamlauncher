@@ -1,8 +1,8 @@
 [Setup]
 AppName=Teamlauncher
 ;GetFileVersion(Teamlauncher.exe)
-AppVersion=0.3
-VersionInfoVersion=0.3
+AppVersion=0.4
+VersionInfoVersion=0.4
 VersionInfoCopyright=Julien Blitte
 DefaultDirName={pf}\Teamlauncher
 DefaultGroupName=Teamlauncher
