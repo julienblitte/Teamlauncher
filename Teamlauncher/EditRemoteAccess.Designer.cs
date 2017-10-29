@@ -30,12 +30,12 @@
         {
             this.okButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.portCustom = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.login = new System.Windows.Forms.TextBox();
             this.password = new System.Windows.Forms.TextBox();
             this.protocol = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.port = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.host = new System.Windows.Forms.TextBox();
@@ -54,16 +54,16 @@
             this.okButton.TabIndex = 50;
             this.okButton.Text = "Ok";
             this.okButton.UseVisualStyleBackColor = true;
-            this.okButton.Click += new System.EventHandler(this.button1_Click);
+            this.okButton.Click += new System.EventHandler(this.ok_Click);
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.portCustom);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.login);
             this.groupBox1.Controls.Add(this.password);
             this.groupBox1.Controls.Add(this.protocol);
-            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.port);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.host);
@@ -73,6 +73,17 @@
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Protocol";
+            // 
+            // portCustom
+            // 
+            this.portCustom.AutoSize = true;
+            this.portCustom.Location = new System.Drawing.Point(116, 43);
+            this.portCustom.Name = "portCustom";
+            this.portCustom.Size = new System.Drawing.Size(51, 17);
+            this.portCustom.TabIndex = 46;
+            this.portCustom.Text = "Port :";
+            this.portCustom.UseVisualStyleBackColor = true;
+            this.portCustom.CheckedChanged += new System.EventHandler(this.portNotDefault_CheckedChanged);
             // 
             // label2
             // 
@@ -106,6 +117,7 @@
             this.password.Size = new System.Drawing.Size(111, 20);
             this.password.TabIndex = 45;
             this.password.UseSystemPasswordChar = true;
+            this.password.Enter += new System.EventHandler(this.password_Enter);
             // 
             // protocol
             // 
@@ -115,15 +127,7 @@
             this.protocol.Name = "protocol";
             this.protocol.Size = new System.Drawing.Size(100, 21);
             this.protocol.TabIndex = 21;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(113, 47);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(79, 13);
-            this.label4.TabIndex = 20;
-            this.label4.Text = "Port (0: default)";
+            this.protocol.SelectedIndexChanged += new System.EventHandler(this.protocol_SelectedIndexChanged);
             // 
             // port
             // 
@@ -211,7 +215,6 @@
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox protocol;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.NumericUpDown port;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox host;
@@ -222,5 +225,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox login;
         private System.Windows.Forms.TextBox password;
+        private System.Windows.Forms.CheckBox portCustom;
     }
 }

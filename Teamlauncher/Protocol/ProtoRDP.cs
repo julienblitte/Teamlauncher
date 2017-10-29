@@ -18,6 +18,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.rdp;
             name = "rdp";
+            defaultPort = 3389;
 
             clientExe = Path.Combine(Environment.SystemDirectory, "mstsc.exe");
         }

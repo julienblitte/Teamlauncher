@@ -14,6 +14,7 @@ namespace Teamlauncher
     {
         public int id;
         public string name;
+        public int defaultPort;
         public Bitmap icon;
 
         public const int ParamNone = 0x00;
@@ -24,6 +25,8 @@ namespace Teamlauncher
 
         public RemoteProtocol()
         {
+            name = "unamed";
+            defaultPort = 0;
         }
 
         public override string ToString()

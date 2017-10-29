@@ -22,7 +22,8 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.ftp;
             this.secure = secure;
-            name = (secure ? "sftp" : "ftp");
+            name = (secure ? "ftps" : "ftp");
+            defaultPort = 21;
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;

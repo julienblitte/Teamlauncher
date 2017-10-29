@@ -1,8 +1,9 @@
+#define ApplicationVersion GetFileVersion('Teamlauncher.exe')
+
 [Setup]
 AppName=Teamlauncher
-;GetFileVersion(Teamlauncher.exe)
-AppVersion=0.4
-VersionInfoVersion=0.4
+AppVersion={#ApplicationVersion}
+VersionInfoVersion={#ApplicationVersion}
 VersionInfoCopyright=Julien Blitte
 DefaultDirName={pf}\Teamlauncher
 DefaultGroupName=Teamlauncher

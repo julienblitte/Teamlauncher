@@ -18,6 +18,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.ssh;
             name = "ssh";
+            defaultPort = 22;
 
             if (File.Exists(Properties.Settings.Default.Putty))
             {

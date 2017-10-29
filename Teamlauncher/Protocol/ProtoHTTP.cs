@@ -18,6 +18,7 @@ namespace Teamlauncher
             icon = Properties.Resources.http;
             this.secure = secure;
             name = (secure ? "https" : "http");
+            defaultPort = (secure ? 443 : 80);
         }
 
         public override void run(string login, string password, string host, int port, int paramSet)

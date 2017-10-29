@@ -9,8 +9,8 @@ namespace Teamlauncher
 {
     class TreeNodeAccess : TreeNode
     {
-        protected ProtoRemoteAccess _remoteAccess;
-        public ProtoRemoteAccess remoteAccess
+        protected RemoteAccess _remoteAccess;
+        public RemoteAccess remoteAccess
         {
             set {
                 _remoteAccess = value;
@@ -27,7 +27,7 @@ namespace Teamlauncher
             this.ImageIndex = 0;
         }
 
-        public TreeNodeAccess(ProtoRemoteAccess remoteAccess, string text) : base(text)
+        public TreeNodeAccess(RemoteAccess remoteAccess, string text) : base(text)
         {
             this._remoteAccess = remoteAccess;
             this.SelectedImageIndex = remoteAccess.protocol.id;
@@ -53,6 +53,7 @@ namespace Teamlauncher
                 TreeNodeAccess clone;
 
                 result = new TreeNodeAccess(this.Text);
+                result.ContextMenuStrip = ContextMenuStrip;
                 foreach (TreeNodeAccess childNode in Nodes)
                 {
                     clone = (TreeNodeAccess)childNode.Clone();
@@ -62,6 +63,7 @@ namespace Teamlauncher
             else
             {
                 result = new TreeNodeAccess(_remoteAccess, this.Text);
+                result.ContextMenuStrip = ContextMenuStrip;
             }
 
             return result;

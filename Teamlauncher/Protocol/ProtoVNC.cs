@@ -21,6 +21,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.vnc;
             name = "vnc";
+            defaultPort = 5900;
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;

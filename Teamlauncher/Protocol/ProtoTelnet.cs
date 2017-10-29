@@ -18,6 +18,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.telnet;
             name = "telnet";
+            defaultPort = 23;
 
             clientExe = Path.Combine(Environment.SystemDirectory, "telnet.exe");
         }

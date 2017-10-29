@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Teamlauncher
@@ -14,7 +11,21 @@ namespace Teamlauncher
     {
         private Dictionary<string, RemoteProtocol> protocolList;
         public string RemoteName;
-        public ProtoRemoteAccess RemoteDetail;
+        public RemoteAccess RemoteDetail;
+        public int defaultPort
+        {
+            get
+            {
+                try
+                {
+                    return protocolList[protocol.Text].defaultPort;
+                }
+                catch (Exception)
+                {
+                    return 0;
+                }
+            }
+        }
 
         public EditRemoteAccess(Dictionary<string, RemoteProtocol> protocolList)
         {
@@ -29,7 +40,7 @@ namespace Teamlauncher
             password.Text = "";
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ok_Click(object sender, EventArgs e)
         {
             string master;
 
@@ -40,19 +51,23 @@ namespace Teamlauncher
             }
 
             RemoteName = name.Text;
-            RemoteDetail = new ProtoRemoteAccess();
+            RemoteDetail = new RemoteAccess();
             RemoteDetail.protocol = protocolList[protocol.Text];
             if (password.Text != "")
             {
                 master = MasterPassword.getInstance().master;
-                if (master != null)
+                if (master == MasterPassword.NO_MASTER_ENABLED)
+                {
+                    RemoteDetail.password = Convert.ToBase64String(Encoding.UTF8.GetBytes(password.Text));
+                }
+                else if (master != MasterPassword.NO_MASTER_ENTERED)
                 {
                     using (Encryption enc = new Encryption(master))
                     {
                         RemoteDetail.password = enc.EncryptString(password.Text);
                     }
                 }
-                else
+                else // not entered
                 {
                     name.Text = "";
                     password.Text = "";
@@ -60,18 +75,11 @@ namespace Teamlauncher
                     return;
                 }
             }
-            if (host.Text != "")
-            {
-                RemoteDetail.host = host.Text;
-            }
-            if (login.Text != "")
-            {
-                RemoteDetail.login = login.Text;
-            }
-            if (port.Value != 0)
-            {
-                RemoteDetail.port = (int)port.Value;
-            }
+ 
+            RemoteDetail.host = (host.Text != "" ? host.Text : null);
+            RemoteDetail.login = (login.Text != "" ? login.Text :null);
+            RemoteDetail.port = (int)port.Value;
+
             name.Text = "";
             password.Text = "";
             DialogResult = DialogResult.OK;
@@ -82,7 +90,7 @@ namespace Teamlauncher
             this.DialogResult = DialogResult.Cancel;
         }
 
-        public DialogResult ShowDialog(string inName, ProtoRemoteAccess ra)
+        public DialogResult ShowDialog(string inName, RemoteAccess ra)
         {
             name.Text = inName;
             host.Text = ra.host;
@@ -91,6 +99,7 @@ namespace Teamlauncher
                 login.Text = ra.login;
             }
             port.Value = ra.port;
+            portCustom.Checked = (ra.port != ra.protocol.defaultPort);
             protocol.Text = ra.protocol.name;
 
             if (ra.password != null)
@@ -120,7 +129,36 @@ namespace Teamlauncher
 
         private void port_ValueChanged(object sender, EventArgs e)
         {
-            BackColor = (port.Value == 0 ? SystemColors.ButtonFace:SystemColors.Window);
+            if (port.Value == defaultPort)
+            {
+                portCustom.Checked = false;
+                port.ForeColor = Color.Gray;
+            }
+            else
+            {
+                portCustom.Checked = true;
+                port.ForeColor = Color.Black;
+            }
+        }
+
+        private void portNotDefault_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!portCustom.Checked)
+            {
+                port.Value = defaultPort;
+            }
+        }
+
+        private void protocol_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            port.Value = defaultPort;
+            // needed because sometimes port do not get changed
+            portCustom.Checked = false;
+        }
+
+        private void password_Enter(object sender, EventArgs e)
+        {
+            password.Text = "";
         }
     }
 }

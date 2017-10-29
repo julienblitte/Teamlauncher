@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Teamlauncher
 {
-    public class ProtoRemoteAccess
+    public class RemoteAccess
     {
         public string host;
         public int port;
@@ -19,20 +20,78 @@ namespace Teamlauncher
             string result;
 
             result = protocol.name + "://";
-            if ((login != "") || (password != ""))
+            if ((login != "" && login != null) || (password != "" && password != null))
             {
-                if (login != "") result += login;
-                if (password != "") result += ":****";
+                if (login != "" && login != null) result += Uri.EscapeDataString(login);
+                if (password != "" && password != null) result += ":" + Uri.EscapeDataString(password);
                 result += "@";
             }
-            result += host;
+            result += Uri.EscapeDataString(host);
 
-            if (port != 0)
+            if (port != protocol.defaultPort)
             {
                 result += ":" + port;
             }
 
             return result;
+        }
+
+        public RemoteAccess()
+        {
+        }
+
+        public RemoteAccess(string Url, Dictionary<string, RemoteProtocol> protocolList, out string name)
+        {
+            MatchCollection matches;
+            int i;
+
+            matches = Regex.Matches(Url, "^.*:=[a-zA-Z]+://(([^:@]*)(:[^:@]+)?@)?[^:@]*$");
+
+            name = null;
+            if (matches.Count != 1)
+            {
+                throw new FormatException();
+            }
+
+            i = Url.IndexOf(":=");
+            name = Url.Substring(0, i);
+            Url = Url.Substring(i + 2);
+
+            i = Url.IndexOf("://");
+            protocol = protocolList[Url.Substring(0, i)];
+            Url = Url.Substring(i + 3);
+
+            i = Url.IndexOf("@");
+            if (i == -1)
+            {
+                login = null;
+                password = null;
+            }
+            else
+            {
+                login = Url.Substring(0, i);
+                i = login.IndexOf(":");
+                if (i != -1)
+                {
+                    password = Uri.UnescapeDataString(login.Substring(i+1));
+                    login = Uri.UnescapeDataString(login.Substring(0, i));
+                }
+
+                Url = Url.Substring(i + 1);
+            }
+
+            i = Url.IndexOf(":");
+            if (i == -1)
+            {
+                host = Uri.UnescapeDataString(Url);
+                port = protocol.defaultPort;
+            }
+            else
+            {
+                host = Uri.UnescapeDataString(Url.Substring(0, i));
+                if (!Int32.TryParse(Url.Substring(i + 1), out port))
+                    port = protocol.defaultPort;
+            }
         }
     }
 }

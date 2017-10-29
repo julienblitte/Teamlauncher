@@ -69,6 +69,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ProgramSingleRun.cs" />
+    <Compile Include="ItemName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ItemName.Designer.cs">
+      <DependentUpon>ItemName.cs</DependentUpon>
+    </Compile>
     <Compile Include="Protocol\ProtoAnyDesk.cs" />
     <Compile Include="Encryption.cs" />
     <Compile Include="ChangeMaster.cs">
@@ -93,6 +100,7 @@
     <Compile Include="Protocol\ProtoFTP.cs" />
     <Compile Include="Protocol\ProtoHTTP.cs" />
     <Compile Include="Protocol\ProtoRDP.cs" />
+    <Compile Include="Protocol\ProtoSerial.cs" />
     <Compile Include="RemoteAccess.cs" />
     <Compile Include="RemoteProtocol.cs" />
     <Compile Include="Protocol\ProtoSCP.cs" />
@@ -114,6 +122,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EditRemoteAccess.resx">
       <DependentUpon>EditRemoteAccess.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ItemName.resx">
+      <DependentUpon>ItemName.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MasterPassword.resx">
       <DependentUpon>MasterPassword.cs</DependentUpon>
@@ -155,6 +166,7 @@
     <Content Include="Resources\http.png" />
     <Content Include="Resources\rdp.png" />
     <Content Include="Resources\scp.png" />
+    <Content Include="Resources\serial.png" />
     <Content Include="Resources\ssh.png" />
     <Content Include="Resources\telnet.png" />
     <Content Include="Teamlauncher.iss">
@@ -162,6 +174,7 @@
     </Content>
     <Content Include="teamlauncher.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Resources\teamviewer.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

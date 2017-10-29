@@ -20,6 +20,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.teamviewer;
             name = "teamviewer";
+            defaultPort = 80;
 
             /* default values */
             is64 = false;

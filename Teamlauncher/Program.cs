@@ -4,21 +4,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Teamlauncher
 {
     static class Program
     {
         public static String name = "teamlauncher";
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
+            Process runningInstance;
+
+            runningInstance = ProgramSingleRun.GetRunningInstance();
             if ((args.Length >= 1) && (args.Contains<string>("-startup")))
             {
-                if (getInstance() == 0)
+                if (runningInstance == null)
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
@@ -26,9 +32,19 @@ namespace Teamlauncher
                     Application.Run();
                 }
             }
-            else if (getInstance() > 0)
+            else if (runningInstance != null)
             {
-                MessageBox.Show("The application is already running", "Teamlauncher",MessageBoxButtons.OK, MessageBoxIcon.Information);
+                IntPtr hwnd;
+                hwnd = ProgramSingleRun.FindPidWindows(runningInstance.Id, "Teamlauncher");
+                if (hwnd != IntPtr.Zero)
+                {
+                    //ShowWindow(runningInstance.MainWindowHandle, SW_RESTORE);
+                    ProgramSingleRun.BringToFront(hwnd);
+                }
+                else
+                {
+                    MessageBox.Show(String.Format("The application is already running: pid {0}", runningInstance.Id), "Teamlauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             else
             {
@@ -38,29 +54,5 @@ namespace Teamlauncher
             }
         }
 
-        static int getInstance()
-        {
-            Process [] pList;
-            int[] PIDList;
-            int PIDCurrent;
-            int i;
-
-            pList = Process.GetProcessesByName(Program.name);
-            PIDList = new int[pList.Length];
-            PIDCurrent = Process.GetCurrentProcess().Id;
-
-            for (i = 0; i < pList.Length; i++)
-            {
-                PIDList[i] = pList[i].Id;
-            }
-            Array.Sort(pList, delegate (Process p1, Process p2) { return (DateTime.Compare(p1.StartTime, p2.StartTime)); });
-
-            for(i=0; i < pList.Length; i++)
-            {
-                if (pList[i].Id == PIDCurrent)
-                    return i;
-            }
-            return -1;
-        }
-    }
+      }
 }

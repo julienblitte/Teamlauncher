@@ -16,6 +16,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.anydesk;
             name = "anydesk";
+            defaultPort = 7070;
 
             /* default values */
             is64 = false;

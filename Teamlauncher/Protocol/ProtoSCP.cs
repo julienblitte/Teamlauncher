@@ -20,6 +20,7 @@ namespace Teamlauncher
         {
             icon = Properties.Resources.scp;
             name = "scp";
+            defaultPort = 22;
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;

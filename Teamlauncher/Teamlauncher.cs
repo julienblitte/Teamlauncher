@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -42,8 +43,10 @@ namespace Teamlauncher
             registerProtocol(new ProtoVNC());
             registerProtocol(new ProtocolTelnet());
             registerProtocol(new ProtoAnyDesk());
+            registerProtocol(new ProtoSerial());
 
-			MasterPassword.getInstance().onCacheChanged += OnPasswordInCache;
+
+            MasterPassword.getInstance().onCacheChanged += OnPasswordInCache;
 				//OnPasswordInCache;
 
 			setVisible(visible);
@@ -218,18 +221,22 @@ namespace Teamlauncher
 
             if (inXmlNode.HasChildNodes)
             {
+                TreeNodeAccess nodeToAdd;
+
                 nodeList = inXmlNode.ChildNodes;
                 for (i = 0; i <= nodeList.Count - 1; i++)
                 {
                     currentXMLNode = inXmlNode.ChildNodes[i];
                     if (currentXMLNode.Attributes != null && currentXMLNode.Attributes["name"] != null)
                     {
-                        inTreeNode.Nodes.Add(new TreeNodeAccess(currentXMLNode.Attributes["name"].Value));
+                        nodeToAdd = new TreeNodeAccess(currentXMLNode.Attributes["name"].Value);
                     }
                     else
                     {
-                        inTreeNode.Nodes.Add(new TreeNodeAccess("New folder"));
+                        nodeToAdd = new TreeNodeAccess("New folder");
                     }
+                    nodeToAdd.ContextMenuStrip = folderMenuStrip;
+                    inTreeNode.Nodes.Add(nodeToAdd);
                     currentTreeNode = (TreeNodeAccess)inTreeNode.Nodes[i];
                     AddXmlNode(currentXMLNode, currentTreeNode);
                 }
@@ -243,20 +250,28 @@ namespace Teamlauncher
                     RemoteProtocol rp;
 
                     inTreeNode.Text = inXmlNode.Attributes["name"].Value;
+                    inTreeNode.ContextMenuStrip = remoteMenuStrip;
                     try
                     {
-                        rp = protocols[inXmlNode.Attributes["protocol"].Value];
+                        if (inXmlNode.Attributes["protocol"].Value == "sftp") // renamed protocol backward compatibility
+                        {
+                            rp = protocols["ftps"];
+                        }
+                        else
+                        {
+                            rp = protocols[inXmlNode.Attributes["protocol"].Value];
+                        }
                         inTreeNode.ImageIndex = rp.id;
 
                         if (inXmlNode.Attributes["host"] != null)
                         {
-                            ProtoRemoteAccess access = new ProtoRemoteAccess();
+                            RemoteAccess access = new RemoteAccess();
                             access.login = inXmlNode.Attributes["login"]?.Value;
                             access.host = inXmlNode.Attributes["host"]?.Value;
 
                             if (!Int32.TryParse(inXmlNode.Attributes["port"]?.Value, out access.port))
                             {
-                                access.port = 0;
+                                access.port = rp.defaultPort;
                             }
                             access.password = inXmlNode.Attributes["password"]?.Value;
                             access.protocol = rp;
@@ -281,7 +296,7 @@ namespace Teamlauncher
             string masterPassword;
             string localPassword;
 
-            ProtoRemoteAccess ra;
+            RemoteAccess ra;
 
             if (node.isFolder())
             {
@@ -293,7 +308,7 @@ namespace Teamlauncher
 
             if ((ra.login != null) && (ra.login != "")) paramSet |= RemoteProtocol.ParamLogin;
             if ((ra.host != null) && (ra.host != "")) paramSet |= RemoteProtocol.ParamHost;
-            if (ra.port != 0) paramSet |= RemoteProtocol.ParamPort;
+            if (ra.port != ra.protocol.defaultPort) paramSet |= RemoteProtocol.ParamPort;
 
             localPassword = "";
             if ((ra.password != null) && (ra.password != ""))
@@ -341,17 +356,6 @@ namespace Teamlauncher
             }
 
             return true;
-        }
-
-        private void treeView1_DoubleClick(object sender, EventArgs e)
-        {
-            TreeNodeAccess node;
-
-            node = (TreeNodeAccess)serverTreeview.SelectedNode;
-            if (node == null)
-                return;
-
-            connectFromNode(node);
         }
 
         private void Teamlauncher_FormClosing(object sender, FormClosingEventArgs e)
@@ -410,29 +414,12 @@ namespace Teamlauncher
                     versionInfo.LegalCopyright, protocolList), "About");
         }
 
-        private void configurationFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ProcessStartInfo psi;
-            String backupConfigFile;
-
-            backupConfigFile = configFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
-            if (!File.Exists(backupConfigFile))
-            {
-                File.Copy(configFile, backupConfigFile);
-            }
-
-            psi = new ProcessStartInfo(editor, String.Format("\"{0}\"", configFile));
-            psi.UseShellExecute = true;
-            psi.Verb = "runas";
-            Process.Start(psi);
-        }
 
         private void addNode(TreeNodeAccess newNode)
         {
             TreeNodeAccess node;
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
-
             if (node == null) /* no node selected */
             {
                 serverTreeview.Nodes[0].Nodes.Add(newNode);
@@ -449,28 +436,17 @@ namespace Teamlauncher
                 node.Parent.Nodes.Insert(pos, newNode);
             }
 
+            if (newNode.ContextMenuStrip == null)
+            {
+                newNode.ContextMenuStrip = (newNode.remoteAccess == null ? folderMenuStrip : remoteMenuStrip);
+            }
+
             serverTreeview.SelectedNode = newNode;
-        }
-
-        private void AddNewAccess_Click(object sender, EventArgs e)
-        {
-            if (editDialog == null)
-            {
-                editDialog = new EditRemoteAccess(protocols);
-            }
-            if (editDialog.ShowDialog() == DialogResult.OK)
-            {
-                TreeNodeAccess newNode;
-
-                newNode = new TreeNodeAccess(editDialog.RemoteDetail, editDialog.RemoteName);
-                addNode(newNode);
-                saveDatabase();
-            }
         }
 
         private string saveDatabaseSub(TreeNodeAccess currentNode, int level=0)
         {
-            ProtoRemoteAccess ra;
+            RemoteAccess ra;
             String result, indent;
 
             indent = new String('\t', level);
@@ -492,7 +468,7 @@ namespace Teamlauncher
                 {
                     result += String.Format(" host=\"{0}\"", ra.host);
                 }
-                if (ra.port != 0)
+                if (ra.port != ra.protocol.defaultPort)
                 {
                     result += String.Format(" port=\"{0}\"", ra.port);
                 }
@@ -538,35 +514,6 @@ namespace Teamlauncher
             File.WriteAllText(configFile, content);
         }
 
-        private void reloadConfigurationFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            reloadDatabase();
-        }
-
-        private void editAccessToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            TreeNodeAccess node;
-
-            node = (TreeNodeAccess)serverTreeview.SelectedNode;
-
-            if (node == null)
-                return;
-
-            if (node.isFolder())
-                return;
-
-            if (editDialog == null)
-            {
-                editDialog = new EditRemoteAccess(protocols);
-            }
-            if (editDialog.ShowDialog(node.Text, node.remoteAccess) == DialogResult.OK)
-            {
-                node.Text = editDialog.RemoteName;
-                node.remoteAccess = editDialog.RemoteDetail;
-                saveDatabase();
-            }
-        }
-
         private void serverTreeview_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Return)
@@ -581,53 +528,12 @@ namespace Teamlauncher
 
         private void addNewFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TreeNodeAccess newNode;
 
-            newNode = new TreeNodeAccess("New folder");
-
-            addNode(newNode);
-            saveDatabase();
         }
 
         private void deleteFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TreeNodeAccess node;
 
-            node = (TreeNodeAccess)serverTreeview.SelectedNode;
-            if (node == null)
-                return;
-
-            if (node.isRoot()) /* must not be root item */
-                return;
-
-            if (MessageBox.Show("Do you really want to delete item \"" + node.Text + "\"?", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-            {
-                if ((node.isFolder()) && (node.Nodes.Count != 0)) /* handle folder subitems */
-                {
-                    int pos;
-                    TreeNode parentNode;
-                    DialogResult keepSubItems;
-
-                    keepSubItems = MessageBox.Show("This folder is not empty!\nDo you want to keep subitems?", "Confirm delete subitems", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
-
-                    if (keepSubItems == DialogResult.Cancel)
-                    {
-                        return;
-                    }
-                    if (keepSubItems == DialogResult.Yes)
-                    {
-                        pos = node.Index + 1;
-                        parentNode = node.Parent;
-                        foreach (TreeNode childNode in node.Nodes)
-                        {
-                            parentNode.Nodes.Insert(pos, (TreeNodeAccess)childNode.Clone());
-                            pos++;
-                        }
-                    }
-                }
-                node.Remove();
-                saveDatabase();
-            }
         }
 
         private void changePassword(TreeNodeAccess currentNode, string oldMaster, string newMaster)
@@ -642,7 +548,7 @@ namespace Teamlauncher
             else
             {
                 string localPassword;
-                ProtoRemoteAccess ra;
+                RemoteAccess ra;
 
                 ra = currentNode.remoteAccess;
                 if ((ra.password != null) && (ra.password != ""))
@@ -711,5 +617,224 @@ namespace Teamlauncher
                 saveDatabase();
             }
         }
+
+        private void newRemoteAccess(object sender, EventArgs e)
+        {
+            if (editDialog == null)
+            {
+                editDialog = new EditRemoteAccess(protocols);
+            }
+            if (editDialog.ShowDialog() == DialogResult.OK)
+            {
+                TreeNodeAccess newNode;
+
+                newNode = new TreeNodeAccess(editDialog.RemoteDetail, editDialog.RemoteName);
+                addNode(newNode);
+                saveDatabase();
+            }
+        }
+
+        private void editConfiguration(object sender, EventArgs e)
+        {
+            ProcessStartInfo psi;
+            String backupConfigFile;
+
+            backupConfigFile = configFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
+            if (!File.Exists(backupConfigFile))
+            {
+                File.Copy(configFile, backupConfigFile);
+            }
+
+            psi = new ProcessStartInfo(editor, String.Format("\"{0}\"", configFile));
+            psi.UseShellExecute = true;
+            psi.Verb = "runas";
+            Process.Start(psi);
+        }
+
+        private void editItem(object sender, EventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+
+            if (node == null)
+                return;
+
+            if (node.isFolder())
+                return;
+
+            if (editDialog == null)
+            {
+                editDialog = new EditRemoteAccess(protocols);
+            }
+            if (editDialog.ShowDialog(node.Text, node.remoteAccess) == DialogResult.OK)
+            {
+                node.Text = editDialog.RemoteName;
+                node.remoteAccess = editDialog.RemoteDetail;
+                saveDatabase();
+            }
+        }
+
+        private void delete(object sender, EventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+            if (node == null)
+                return;
+
+            if (node.isRoot()) /* must not be root item */
+                return;
+
+            if (MessageBox.Show("Do you really want to delete item \"" + node.Text + "\"?", "Confirm delete",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            {
+                if ((node.isFolder()) && (node.Nodes.Count != 0)) /* handle folder subitems */
+                {
+                    int pos;
+                    TreeNode parentNode;
+                    DialogResult keepSubItems;
+
+                    keepSubItems = MessageBox.Show("This folder is not empty!\nDo you want to keep subitems?", "Confirm delete subitems",
+                        MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+
+                    if (keepSubItems == DialogResult.Cancel)
+                    {
+                        return;
+                    }
+                    if (keepSubItems == DialogResult.Yes)
+                    {
+                        pos = node.Index + 1;
+                        parentNode = node.Parent;
+                        foreach (TreeNode childNode in node.Nodes)
+                        {
+                            parentNode.Nodes.Insert(pos, (TreeNodeAccess)childNode.Clone());
+                            pos++;
+                        }
+                    }
+                }
+                node.Remove();
+                saveDatabase();
+            }
+        }
+
+        private void connect(object sender, EventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+            if (node == null)
+                return;
+
+            connectFromNode(node);
+        }
+
+        private void serverTreeview_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            // to support right click
+            serverTreeview.SelectedNode = e.Node;
+        }
+
+        private void newFolder(object sender, EventArgs e)
+        {
+            TreeNodeAccess newNode;
+            ItemNameDialog diag;
+
+            diag = new ItemNameDialog("New folder");
+            if (diag.ShowDialog() == DialogResult.OK)
+            {
+                if (diag.givenName != "")
+                {
+                    newNode = new TreeNodeAccess(diag.givenName);
+                }
+                else
+                {
+                    newNode = new TreeNodeAccess("New folder");
+                }
+
+                addNode(newNode);
+                saveDatabase();
+            }
+        }
+
+        private void reloadConfiguration(object sender, EventArgs e)
+        {
+            reloadDatabase();
+        }
+
+        private void serverTreeview_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+
+            if (node == null)
+                connectToolStripMenuItem1.Enabled = false;
+            else
+                connectToolStripMenuItem1.Enabled = !node.isFolder();
+        }
+
+        private void rename(object sender, EventArgs e)
+        {
+            ItemNameDialog diag;
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+            if (node == null)
+                return;
+
+            diag = new ItemNameDialog(node.Text);
+            if (diag.ShowDialog() == DialogResult.OK)
+            {
+                if (diag.givenName != "")
+                {
+                    node.Text = diag.givenName;
+                }
+                else
+                {
+                    node.Text = "Unamed folder";
+                }
+            }
+
+            saveDatabase();
+        }
+
+        private void copyItem(object sender, EventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+            if (node == null)
+                return;
+
+            Clipboard.SetText(node.Text+":="+node.remoteAccess.ToString());
+        }
+
+        private void paste(object sender, EventArgs e)
+        {
+            string c;
+            TreeNodeAccess newNode;
+
+            RemoteAccess ra;
+            string name;
+
+            c = Clipboard.GetText();
+            if (c == null)
+                return;
+
+            try
+            {
+                ra = new RemoteAccess(c, protocols, out name);
+                newNode = new TreeNodeAccess(ra, name);
+                addNode(newNode);
+                saveDatabase();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Url decoding error:\n"+c);
+                return;
+            }
+        }
+        
     }
 }

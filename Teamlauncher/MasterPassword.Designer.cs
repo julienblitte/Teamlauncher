@@ -30,8 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             this.password = new System.Windows.Forms.TextBox();
-            this.CancelButton = new System.Windows.Forms.Button();
-            this.OkButton = new System.Windows.Forms.Button();
+            this.button_cancel = new System.Windows.Forms.Button();
+            this.button_ok = new System.Windows.Forms.Button();
             this.expirationTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
@@ -43,26 +43,26 @@
             this.password.TabIndex = 0;
             this.password.UseSystemPasswordChar = true;
             // 
-            // CancelButton
+            // button_cancel
             // 
-            this.CancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.CancelButton.Location = new System.Drawing.Point(12, 48);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 1;
-            this.CancelButton.Text = "&Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.button_cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.button_cancel.Location = new System.Drawing.Point(12, 48);
+            this.button_cancel.Name = "button_cancel";
+            this.button_cancel.Size = new System.Drawing.Size(75, 23);
+            this.button_cancel.TabIndex = 1;
+            this.button_cancel.Text = "&Cancel";
+            this.button_cancel.UseVisualStyleBackColor = true;
+            this.button_cancel.Click += new System.EventHandler(this.CancelButton_Click);
             // 
-            // OkButton
+            // button_ok
             // 
-            this.OkButton.Location = new System.Drawing.Point(93, 48);
-            this.OkButton.Name = "OkButton";
-            this.OkButton.Size = new System.Drawing.Size(75, 23);
-            this.OkButton.TabIndex = 2;
-            this.OkButton.Text = "&Ok";
-            this.OkButton.UseVisualStyleBackColor = true;
-            this.OkButton.Click += new System.EventHandler(this.OkButton_Click);
+            this.button_ok.Location = new System.Drawing.Point(93, 48);
+            this.button_ok.Name = "button_ok";
+            this.button_ok.Size = new System.Drawing.Size(75, 23);
+            this.button_ok.TabIndex = 2;
+            this.button_ok.Text = "&Ok";
+            this.button_ok.UseVisualStyleBackColor = true;
+            this.button_ok.Click += new System.EventHandler(this.OkButton_Click);
             // 
             // expirationTimer
             // 
@@ -71,12 +71,12 @@
             // 
             // MasterPassword
             // 
-            this.AcceptButton = this.OkButton;
+            this.AcceptButton = this.button_ok;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(177, 81);
-            this.Controls.Add(this.OkButton);
-            this.Controls.Add(this.CancelButton);
+            this.Controls.Add(this.button_ok);
+            this.Controls.Add(this.button_cancel);
             this.Controls.Add(this.password);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "MasterPassword";
@@ -91,8 +91,8 @@
         #endregion
 
         private System.Windows.Forms.TextBox password;
-        private System.Windows.Forms.Button CancelButton;
-        private System.Windows.Forms.Button OkButton;
+        private System.Windows.Forms.Button button_cancel;
+        private System.Windows.Forms.Button button_ok;
         private System.Windows.Forms.Timer expirationTimer;
     }
 }
