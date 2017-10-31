@@ -43,7 +43,7 @@ namespace Teamlauncher
                 }
                 else
                 {
-                    MessageBox.Show(String.Format("The application is already running: pid {0}", runningInstance.Id), "Teamlauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(String.Format("The application is already running.\n(process {0})", runningInstance.Id), "Teamlauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             else
