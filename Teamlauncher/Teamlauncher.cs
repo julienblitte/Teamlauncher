@@ -150,7 +150,16 @@ namespace Teamlauncher
 
         private void Teamlauncher_Shown(object sender, EventArgs e)
         {
+            startupAutomaticallyToolStripMenuItem_Click(null, new EventArgs());
+
+            /*
+            if (!serverTreeview.Nodes[0].IsExpanded)
+            {
+                serverTreeview.ExpandAll();
+            }
+            */
             serverTreeview.ExpandAll();
+
             serverTreeview.Focus();
             BringToFront();
             Activate();
@@ -662,7 +671,10 @@ namespace Teamlauncher
                 return;
 
             if (node.isFolder())
+            {
+                rename(sender, e);
                 return;
+            }
 
             if (editDialog == null)
             {
@@ -766,13 +778,26 @@ namespace Teamlauncher
         private void serverTreeview_AfterSelect(object sender, TreeViewEventArgs e)
         {
             TreeNodeAccess node;
+            bool remoteAccessSelected, folderSelected;
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
 
             if (node == null)
-                connectToolStripMenuItem1.Enabled = false;
+            {
+                remoteAccessSelected = false;
+                folderSelected = false;
+            }
             else
-                connectToolStripMenuItem1.Enabled = !node.isFolder();
+            {
+                remoteAccessSelected = !node.isFolder();
+                folderSelected = node.isFolder();
+            }
+            connectToolStripMenuItem1.Enabled = remoteAccessSelected;
+            copyToolStripMenuItem1.Enabled = remoteAccessSelected;
+            pasteToolStripMenuItem2.Enabled = remoteAccessSelected;
+
+            editToolStripMenuItem2.Enabled = remoteAccessSelected || folderSelected;
+            deleteToolStripMenuItem1.Enabled = remoteAccessSelected || folderSelected;
         }
 
         private void rename(object sender, EventArgs e)
@@ -836,6 +861,29 @@ namespace Teamlauncher
                 return;
             }
         }
-        
+
+        private void startupAutomaticallyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RegistryKey Keyrun;
+
+            Keyrun = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+            if (sender == null) // only set menu check state
+            {
+                startupAutomaticallyToolStripMenuItem.Checked = (Keyrun.GetValue("Teamlauncher") != null);
+            }
+            else if (startupAutomaticallyToolStripMenuItem.Checked) // click to uncheck
+            {
+                Keyrun.DeleteValue("Teamlauncher");
+                startupAutomaticallyToolStripMenuItem.Checked = false;
+            }
+            else // click to check
+            {
+                Keyrun.SetValue("Teamlauncher", "\"" + Assembly.GetEntryAssembly().Location + "\" - startup");
+                startupAutomaticallyToolStripMenuItem.Checked = true;
+            }
+
+            Keyrun.Dispose();
+        }
     }
 }

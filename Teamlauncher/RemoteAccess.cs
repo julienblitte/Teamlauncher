@@ -43,7 +43,7 @@ namespace Teamlauncher
         public RemoteAccess(string Url, Dictionary<string, RemoteProtocol> protocolList, out string name)
         {
             MatchCollection matches;
-            int i;
+            int i, j;
 
             matches = Regex.Matches(Url, "^.*:=[a-zA-Z]+://(([^:@]*)(:[^:@]+)?@)?[^:@]*$");
 
@@ -70,11 +70,11 @@ namespace Teamlauncher
             else
             {
                 login = Url.Substring(0, i);
-                i = login.IndexOf(":");
-                if (i != -1)
+                j = login.IndexOf(":");
+                if (j != -1)
                 {
-                    password = Uri.UnescapeDataString(login.Substring(i+1));
-                    login = Uri.UnescapeDataString(login.Substring(0, i));
+                    password = Uri.UnescapeDataString(login.Substring(j+1));
+                    login = Uri.UnescapeDataString(login.Substring(0, j));
                 }
 
                 Url = Url.Substring(i + 1);

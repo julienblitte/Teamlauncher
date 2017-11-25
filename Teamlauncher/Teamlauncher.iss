@@ -26,4 +26,4 @@ Name: "{group}\Uninstall Teamlauncher"; Filename: "{uninstallexe}"
 Name: startup; Description: Starts automatically with Windows
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Teamlauncher"; ValueData: "{app}\Teamlauncher.exe -startup";  Components: startup
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Teamlauncher"; ValueData: """{app}\Teamlauncher.exe"" -startup";  Components: startup

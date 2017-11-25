@@ -20,25 +20,25 @@ namespace Teamlauncher
         static void Main(string[] args)
         {
             Process runningInstance;
+            bool startup;
+
+            startup = args.Contains<string>("-startup");
 
             runningInstance = ProgramSingleRun.GetRunningInstance();
-            if ((args.Length >= 1) && (args.Contains<string>("-startup")))
+            if (runningInstance == null)
             {
-                if (runningInstance == null)
-                {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    Form MainForm = new Teamlauncher(false);
+                    Form MainForm = new Teamlauncher(!startup);
                     Application.Run();
-                }
             }
-            else if (runningInstance != null)
+            else if (startup)
             {
                 IntPtr hwnd;
                 hwnd = ProgramSingleRun.FindPidWindows(runningInstance.Id, "Teamlauncher");
+
                 if (hwnd != IntPtr.Zero)
                 {
-                    //ShowWindow(runningInstance.MainWindowHandle, SW_RESTORE);
                     ProgramSingleRun.BringToFront(hwnd);
                 }
                 else
@@ -46,13 +46,7 @@ namespace Teamlauncher
                     MessageBox.Show(String.Format("The application is already running.\n(process {0})", runningInstance.Id), "Teamlauncher", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            else
-            {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Teamlauncher());
-            }
         }
 
-      }
+    }
 }
