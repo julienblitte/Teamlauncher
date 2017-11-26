@@ -1,6 +1,8 @@
 #define ApplicationVersion GetFileVersion('Teamlauncher.exe')
 
 [Setup]
+ArchitecturesAllowed=x86 x64
+ArchitecturesInstallIn64BitMode=x64
 AppName=Teamlauncher
 AppVersion={#ApplicationVersion}
 VersionInfoVersion={#ApplicationVersion}
@@ -15,7 +17,7 @@ OutputDir=.
 
 [Files]
 Source: "Teamlauncher.exe"; DestDir: "{app}"
-Source: "Teamlauncher.xml"; DestDir: "{app}"; Flags: onlyifdoesntexist
+Source: "Teamlauncher.xml"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "Teamlauncher.exe.config"; DestDir: "{app}"
 
 [Icons]

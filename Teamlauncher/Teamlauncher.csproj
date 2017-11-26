@@ -197,7 +197,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Inno Setup 5\Compil32.exe" /cc "$(TargetDir)\$(ProjectName).iss"</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Release (
+"C:\Program Files (x86)\Inno Setup 5\Compil32.exe" /cc "$(TargetDir)\$(ProjectName).iss"
+)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
