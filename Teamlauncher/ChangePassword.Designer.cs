@@ -1,6 +1,6 @@
 ﻿namespace Teamlauncher
 {
-    partial class ChangeMaster
+    partial class ChangePassword
     {
         /// <summary>
         /// Required designer variable.
@@ -64,7 +64,6 @@
             // 
             // okButton
             // 
-            this.okButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.okButton.Location = new System.Drawing.Point(106, 102);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
@@ -91,7 +90,7 @@
             this.label2.TabIndex = 5;
             this.label2.Text = "Confirm password:";
             // 
-            // ChangeMaster
+            // ChangePassword
             // 
             this.AcceptButton = this.okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -105,9 +104,10 @@
             this.Controls.Add(this.confirm);
             this.Controls.Add(this.password);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Name = "ChangeMaster";
+            this.Name = "ChangePassword";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Change master";
+            this.Text = "Change password";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

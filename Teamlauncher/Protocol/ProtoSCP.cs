@@ -8,13 +8,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoSCP : RemoteProtocol
+    class ProtoSCP : ProtocolType
     {
         protected string clientExe;
         protected string clientVer;
         protected bool is64;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoSCP()
         {
@@ -55,23 +63,23 @@ namespace Teamlauncher
 
                 switch(paramSet)
                 {
-                    case RemoteProtocol.ParamHost :
+                    case ProtocolType.ParamHost :
                         WinSCPParameter = String.Format("\"scp://{0}\"", host);
                         break;
-                    case RemoteProtocol.ParamHost | RemoteProtocol.ParamLogin :
+                    case ProtocolType.ParamHost | ProtocolType.ParamLogin :
                         WinSCPParameter = String.Format("\"scp://{0}@{1}\"", Uri.EscapeDataString(login), host);
                         break;
-                    case RemoteProtocol.ParamHost|RemoteProtocol.ParamLogin | RemoteProtocol.ParamPassword:
+                    case ProtocolType.ParamHost|ProtocolType.ParamLogin | ProtocolType.ParamPassword:
                         WinSCPParameter = String.Format("\"scp://{0}:{1}@{2}\"",
                             Uri.EscapeDataString(login), Uri.EscapeDataString(password), host);
                         break;
-                    case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort:
+                    case ProtocolType.ParamHost | ProtocolType.ParamPort:
                         WinSCPParameter = String.Format("\"scp://{0}:{1}\"", host, port);
                         break;
-                    case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort | RemoteProtocol.ParamLogin:
+                    case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin:
                         WinSCPParameter = String.Format("\"scp://{0}@{1}:{2}\"", Uri.EscapeDataString(login), host, port);
                         break;
-                    case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort | RemoteProtocol.ParamLogin | RemoteProtocol.ParamPassword:
+                    case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
                         WinSCPParameter = String.Format("\"scp://{0}:{1}@{2}:{3}\"",
                             Uri.EscapeDataString(login), Uri.EscapeDataString(password), host, port);
                         break;

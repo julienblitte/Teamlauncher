@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace Teamlauncher
 {
@@ -71,7 +75,6 @@ namespace Teamlauncher
             return true;
         }
 
-
         public static IntPtr FindPidWindows(int pid, String windowText)
         {
             targetPid = pid;
@@ -100,5 +103,41 @@ namespace Teamlauncher
             SetForegroundWindow(window);
         }
 
+        public static void OnNotification(Action<String> mes)
+        {
+            Thread t;
+
+            t = new Thread(NotificationServer);
+            t.Start(mes);
+        }
+        public static void NotificationServer(object arg)
+        {
+            PipeServer pipe;
+            Action<String> mess;
+
+            mess = (Action<String>)arg;
+            pipe = new PipeServer();
+            pipe.PipeMessage += mess;
+            pipe.Listen("Teamlauncher");
+        }
+        
+        public static bool Notify()
+        {
+            int PIDCurrent;
+            PipeClient pipe;
+
+            PIDCurrent = Process.GetCurrentProcess().Id;
+
+            pipe = new PipeClient();
+            try
+            {
+                pipe.Send(PIDCurrent.ToString(), "Teamlauncher", 1000);
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

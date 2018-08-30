@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    public abstract class RemoteProtocol
+    public abstract class ProtocolType
     {
         public int id;
         public string name;
@@ -22,8 +22,14 @@ namespace Teamlauncher
         public const int ParamPassword = 0x02;
         public const int ParamHost = 0x04;
         public const int ParamPort = 0x08;
+        public const int ParamAll = 0x0F;
 
-        public RemoteProtocol()
+        public abstract int AllowedParameters
+        {
+            get;
+        }
+         
+        public ProtocolType()
         {
             name = "unamed";
             defaultPort = 0;

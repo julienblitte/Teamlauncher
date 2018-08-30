@@ -82,6 +82,7 @@
             this.Name = "MasterPassword";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Master Password";
+            this.TopMost = true;
             this.Shown += new System.EventHandler(this.MasterPassword_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();

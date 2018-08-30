@@ -8,11 +8,19 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtocolTelnet : RemoteProtocol
+    class ProtocolTelnet : ProtocolType
     {
         protected string clientExe;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtocolTelnet()
         {
@@ -27,7 +35,7 @@ namespace Teamlauncher
         {
             try
             {
-                Process.Start(clientExe, ((paramSet & RemoteProtocol.ParamPort) == 0  ? String.Format("\"{0}\"", host) : String.Format("\"{0}\" {1}", host, port)));
+                Process.Start(clientExe, ((paramSet & ProtocolType.ParamPort) == 0  ? String.Format("\"{0}\"", host) : String.Format("\"{0}\" {1}", host, port)));
             }
             catch (Exception)
             {

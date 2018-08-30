@@ -8,14 +8,22 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoVNC : RemoteProtocol
+    class ProtoVNC : ProtocolType
     {
         protected string UltraVNCExe;
         protected string UltraVNCVer;
         protected string TightVNCExe;
         protected bool is64;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoVNC()
         {
@@ -68,7 +76,7 @@ namespace Teamlauncher
 
                 UltraVNCParameters = "-autoreconnect";
 
-                if ((paramSet & RemoteProtocol.ParamPort) > 0)
+                if ((paramSet & ProtocolType.ParamPort) > 0)
                 {
                     UltraVNCParameters += String.Format(" -connect \"{0}:{1}\"", host, port);
                 }
@@ -77,9 +85,9 @@ namespace Teamlauncher
                     UltraVNCParameters += String.Format(" -connect \"{0}\"", host);
                 }
 
-                if ((paramSet & RemoteProtocol.ParamLogin) > 0)
+                if ((paramSet & ProtocolType.ParamLogin) > 0)
                 {
-                    if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+                    if ((paramSet & ProtocolType.ParamPassword) > 0)
                     {
                         UltraVNCParameters += String.Format(" -username \"{0}\" -password \"{1}\"", login, password);
                     }
@@ -95,13 +103,13 @@ namespace Teamlauncher
                 string TightVNCParameters;
 
                 TightVNCParameters = String.Format("-host={0}", host);
-                if ((paramSet & RemoteProtocol.ParamPort) > 0)
+                if ((paramSet & ProtocolType.ParamPort) > 0)
                 {
                     TightVNCParameters += String.Format(" -port={0}", port);
                 }
-                if ((paramSet & RemoteProtocol.ParamLogin) > 0)
+                if ((paramSet & ProtocolType.ParamLogin) > 0)
                 {
-                    if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+                    if ((paramSet & ProtocolType.ParamPassword) > 0)
                     {
                         TightVNCParameters += String.Format(" -username={0} -password={1}", login, password);
                     }

@@ -1,15 +1,18 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
+using Teamlauncher.Protocol;
+
+//TODO: config to change by registry
 
 namespace Teamlauncher
 {
@@ -17,13 +20,20 @@ namespace Teamlauncher
     {
         private NotifyIcon trayIcon;
         private ContextMenu trayMenu;
-        protected string configFile;
+        private MenuItem connectMenu;
+        protected string databaseFile;
         protected string editor;
         protected ImageList iconList;
-        protected Dictionary<string, RemoteProtocol> protocols;
+        protected Dictionary<string, ProtocolType> protocols;
         protected EditRemoteAccess editDialog;
 
-        public Teamlauncher(bool visible=true)
+        private enum networkMode { single, server, client, debug };
+        private networkMode currentMode;
+
+        private const string REGISTRY_CONFIG = @"Software\Teamlauncher";
+        private const int MAX_BACKUP_KEEY_DAYS = 7;
+
+        public Teamlauncher(bool visible = true)
         {
             InitializeComponent();
             createTrayIcon();
@@ -31,7 +41,12 @@ namespace Teamlauncher
             iconList = new ImageList();
             iconList.Images.Add(Properties.Resources.group);
 
-            protocols = new Dictionary<string, RemoteProtocol>();
+            using (RegistryConfig reg = new RegistryConfig())
+            {
+                currentMode = (networkMode)reg.readInteger("workingMode");
+            }
+
+            protocols = new Dictionary<string, ProtocolType>();
 
             registerProtocol(new ProtoTeamviewer());
             registerProtocol(new ProtoSSH());
@@ -45,19 +60,26 @@ namespace Teamlauncher
             registerProtocol(new ProtocolTelnet());
             registerProtocol(new ProtoAnyDesk());
             registerProtocol(new ProtoSerial());
-
+            
+            Debug.WriteLine("Current mode is "+ currentMode.ToString());
+            if (currentMode == networkMode.debug)
+            {
+                registerProtocol(new ProtoDebug());
+            }
 
             MasterPassword.getInstance().onCacheChanged += OnPasswordInCache;
-				//OnPasswordInCache;
 
-			setVisible(visible);
+            Visible = visible;
         }
 
         private void createTrayIcon()
         {
+            connectMenu = new MenuItem("Connect to");
+
             // Create a simple tray menu with only one item.
             trayMenu = new ContextMenu();
-            trayMenu.MenuItems.Add("Exit", OnExit);
+            trayMenu.MenuItems.Add("Show", onTrayMenuShow);
+            trayMenu.MenuItems.Add("Exit", onExit);
 
             // Create a tray icon. 
             trayIcon = new NotifyIcon();
@@ -66,65 +88,81 @@ namespace Teamlauncher
 
             // Add menu to tray icon and show it.
             trayIcon.ContextMenu = trayMenu;
-            trayIcon.Click += onClick;
+            trayIcon.Click += onTrayIconClick;
             trayIcon.Visible = true;
         }
 
-        private bool setVisible(bool state)
+        private void onTrayMenuShow(object sender, EventArgs e)
         {
-            ShowInTaskbar = Visible = state;
             if (Visible)
             {
-                if (WindowState == FormWindowState.Minimized)
-                {
-                    WindowState = FormWindowState.Normal;
-                }
-                Teamlauncher_Shown(this, new EventArgs());
+                Teamlauncher_VisibleChanged(sender, e);
             }
-            return Visible;
+            else
+            {
+                Visible = true;
+            }
         }
 
-        private void onClick(object sender, EventArgs e)
+        private void onTrayIconClick(object sender, EventArgs e)
         {
-            setVisible(!Visible);
+            MouseEventArgs me = (MouseEventArgs)e;
+
+            if (me.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                Visible = !Visible;
+            }
         }
 
         public Action<bool> OnPasswordInCache(bool passwordCached)
         {
-			Text = Text.Replace("*", "");
+            Text = Text.Replace("*", "");
             if (passwordCached)
             {
                 this.Text += "*";
             }
 
-			return null;
+            return null;
         }
 
-        private void OnExit(object sender, EventArgs e)
+        private void onExit(object sender, EventArgs e)
         {
-            Properties.Settings.Default.LocationX = this.Location.X;
-            Properties.Settings.Default.LocationY = this.Location.Y;
-            Properties.Settings.Default.WindowWidth = this.Width;
-            Properties.Settings.Default.WindowHeight = this.Height;
-            Properties.Settings.Default.Save();
+            exit();
+        }
 
-            setVisible(false);
+        public void exit()
+        {
+            if (Visible)
+            {
+                using (RegistryConfig reg = new RegistryConfig())
+                {
+                    reg.writeInteger("LocationX", this.Location.X);
+                    reg.writeInteger("LocationY", this.Location.Y);
+                    reg.writeInteger("WindowWidth", this.Width);
+                    reg.writeInteger("WindowHeight", this.Height);
+                }
+            }
+
+            trayIcon.Visible = false; // must be there, else trayicon stay
             trayIcon.Dispose();
-            Application.Exit();
+            Environment.Exit(0);
         }
 
         private void loadConfig()
         {
             string appFolder;
-            configFile = "teamlauncher.xml";
+            databaseFile = "teamlauncher.xml";
+
+            Debug.WriteLine("Teamlauncher.loadConfig()");
 
             appFolder = AppDomain.CurrentDomain.BaseDirectory;
             if (!appFolder.EndsWith("\\"))
             {
                 appFolder += "\\";
             }
-            configFile = appFolder + "teamlauncher.xml";
+            databaseFile = appFolder + "teamlauncher.xml";
 
+            // try to get better editor than notepad (notpead++ only for now)
             editor = "notepad.exe";
             RegistryKey npp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe");
             if (npp != null)
@@ -133,39 +171,59 @@ namespace Teamlauncher
             }
         }
 
+        private int onMonitor(Point pt)
+        {
+            for (int i = 0; i < Screen.AllScreens.Length; i++)
+            {
+                Rectangle monitor = Screen.AllScreens[i].Bounds;
+
+                if ((monitor.Left <= pt.X) && (pt.X <= monitor.Right) &&
+                    (monitor.Top <= pt.Y) && (pt.Y <= monitor.Bottom))
+                {
+                    return i + 1;
+                }
+            }
+            return 0;
+        }
+
         private void Teamlauncher_Load(object sender, EventArgs e)
         {
+            int x, y, h, w;
+
             loadConfig();
             reloadDatabase();
 
-            if (Properties.Settings.Default.LocationX != 0 || Properties.Settings.Default.LocationY != 0)
-                this.Location = new Point(Properties.Settings.Default.LocationX, Properties.Settings.Default.LocationY);
+            trayMenu.MenuItems.Add(0, connectMenu);
 
-            if (Properties.Settings.Default.WindowWidth != 0 || Properties.Settings.Default.WindowHeight != 0)
+            using (RegistryConfig reg = new RegistryConfig())
             {
-                this.Width = Properties.Settings.Default.WindowWidth;
-                this.Height = Properties.Settings.Default.WindowHeight;
+                x = reg.readInteger("LocationX");
+                y = reg.readInteger("LocationY");
+                h = reg.readInteger("WindowHeight");
+                w = reg.readInteger("WindowWidth");
+            }
+
+            if (h > 0 && w > 0)
+            {
+                Point topLeft, bottomRight;
+                int monitor1, monitor2;
+
+                topLeft = new Point(x+1, y+1);
+                bottomRight = new Point(x + w -1, y + h -1);
+
+                monitor1 = onMonitor(topLeft);
+                monitor2 = onMonitor(bottomRight);
+
+                if ((monitor1 == monitor2) && (monitor1 != 0))
+                {
+                    this.Location = new Point(x, y);
+                    this.Width = w;
+                    this.Height = h;
+                }
             }
         }
 
-        private void Teamlauncher_Shown(object sender, EventArgs e)
-        {
-            startupAutomaticallyToolStripMenuItem_Click(null, new EventArgs());
-
-            /*
-            if (!serverTreeview.Nodes[0].IsExpanded)
-            {
-                serverTreeview.ExpandAll();
-            }
-            */
-            serverTreeview.ExpandAll();
-
-            serverTreeview.Focus();
-            BringToFront();
-            Activate();
-        }
-
-        private void registerProtocol(RemoteProtocol rp)
+        private void registerProtocol(ProtocolType rp)
         {
             // populate icon list
             iconList.Images.Add(rp.icon);
@@ -178,17 +236,46 @@ namespace Teamlauncher
 
         private void reloadDatabase()
         {
+            Debug.WriteLine("Teamlauncher.reloadDatabase()");
+
             // Assign the ImageList to the TreeView.
             serverTreeview.ImageList = iconList;
 
-            if (File.Exists(configFile))
+            // if client mode, download remote file
+            if (currentMode == networkMode.client)
+            {
+                string server;
+                string password;
+                int port;
+
+                using (RegistryConfig reg = new RegistryConfig())
+                {
+                    server = reg.readString("server");
+                    port = reg.readInteger("port");
+
+                    if (port == 0)
+                        port = 0x544C;
+
+                    password = reg.readString("password");
+                }
+                using (var client = new WebClient())
+                {
+                    // todo: server address
+                    // todo: server port
+                    // todo: password
+                    client.DownloadFile(String.Format("http://{0}:{1}/", server, port), databaseFile);
+                    client.Credentials = new NetworkCredential("teamlauncher", password);
+                }
+            }
+
+            if (File.Exists(databaseFile))
             {
                 XmlDocument xmldoc;
                 XmlNode xmlnode;
                 FileStream fs;
-                    
+
                 // open XML
-                fs = new FileStream(configFile, FileMode.Open, FileAccess.Read);
+                fs = new FileStream(databaseFile, FileMode.Open, FileAccess.Read);
                 xmldoc = new XmlDocument();
                 xmldoc.Load(fs);
 
@@ -196,8 +283,8 @@ namespace Teamlauncher
                 xmlnode = xmldoc.ChildNodes[1];
                 serverTreeview.Nodes.Clear();
                 serverTreeview.Nodes.Add(new TreeNodeAccess(
-                     (xmldoc.DocumentElement.Attributes["name"] != null)?
-                     xmldoc.DocumentElement.Attributes["name"].Value:
+                     (xmldoc.DocumentElement.Attributes["name"] != null) ?
+                     xmldoc.DocumentElement.Attributes["name"].Value :
                      "Teamlauncher"
                     ));
                 if (xmldoc.DocumentElement.Attributes["hash"] != null)
@@ -208,21 +295,25 @@ namespace Teamlauncher
                 // launch recursive process
                 TreeNodeAccess tNode;
                 tNode = (TreeNodeAccess)serverTreeview.Nodes[0];
-                AddXmlNode(xmlnode, tNode);
+                addXmlNode(xmlnode, tNode);
                 serverTreeview.ExpandAll();
                 fs.Close();
+
+                // build connect menu
+                connectMenu.MenuItems.Clear();
+                populateConnectMenu(connectMenu, tNode);
             }
             else
             {
-                using (File.Create(configFile))
+                using (File.Create(databaseFile))
                 {
-                    MessageBox.Show(this, "Configuration file " + configFile + " does not exists, created.", "Configuration", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(this, "Configuration file " + databaseFile + " does not exists, created.", "Configuration", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             }
 
         }
 
-        private void AddXmlNode(XmlNode inXmlNode, TreeNodeAccess inTreeNode)
+        private void addXmlNode(XmlNode inXmlNode, TreeNodeAccess inTreeNode)
         {
             XmlNode currentXMLNode;
             TreeNodeAccess currentTreeNode;
@@ -248,7 +339,7 @@ namespace Teamlauncher
                     nodeToAdd.ContextMenuStrip = folderMenuStrip;
                     inTreeNode.Nodes.Add(nodeToAdd);
                     currentTreeNode = (TreeNodeAccess)inTreeNode.Nodes[i];
-                    AddXmlNode(currentXMLNode, currentTreeNode);
+                    addXmlNode(currentXMLNode, currentTreeNode);
                 }
             }
             else if (inXmlNode.Name == "remote")
@@ -257,7 +348,7 @@ namespace Teamlauncher
                 inXmlNode.Attributes["name"] != null &&
                 inXmlNode.Attributes["protocol"] != null)
                 {
-                    RemoteProtocol rp;
+                    ProtocolType rp;
 
                     inTreeNode.Text = inXmlNode.Attributes["name"].Value;
                     inTreeNode.ContextMenuStrip = remoteMenuStrip;
@@ -314,11 +405,11 @@ namespace Teamlauncher
             }
 
             ra = node.remoteAccess;
-            paramSet = RemoteProtocol.ParamNone;
+            paramSet = ProtocolType.ParamNone;
 
-            if ((ra.login != null) && (ra.login != "")) paramSet |= RemoteProtocol.ParamLogin;
-            if ((ra.host != null) && (ra.host != "")) paramSet |= RemoteProtocol.ParamHost;
-            if (ra.port != ra.protocol.defaultPort) paramSet |= RemoteProtocol.ParamPort;
+            if ((ra.login != null) && (ra.login != "")) paramSet |= ProtocolType.ParamLogin;
+            if ((ra.host != null) && (ra.host != "")) paramSet |= ProtocolType.ParamHost;
+            if (ra.port != ra.protocol.defaultPort) paramSet |= ProtocolType.ParamPort;
 
             localPassword = "";
             if ((ra.password != null) && (ra.password != ""))
@@ -335,6 +426,8 @@ namespace Teamlauncher
                 else if (masterPassword == MasterPassword.NO_MASTER_ENABLED)
                 {
                     localPassword = Encoding.UTF8.GetString(Convert.FromBase64String(ra.password));
+
+                    paramSet |= ProtocolType.ParamPassword;
                 }
                 else
                 {
@@ -343,12 +436,12 @@ namespace Teamlauncher
                         localPassword = enc.DecryptString(ra.password);
                         if (localPassword == null)
                         {
-                            MessageBox.Show("Error decrypting data!\nIs your configuration file corrupted?", "Invalid Password", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show("Error decrypting data, your configuration is probably file corrupted?", "Invalid Password", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                             return true;
                         }
                         else
                         {
-                            paramSet |= RemoteProtocol.ParamPassword;
+                            paramSet |= ProtocolType.ParamPassword;
                         }
                     }
                 }
@@ -368,15 +461,66 @@ namespace Teamlauncher
             return true;
         }
 
+        private void generateConnectMenu()
+        {
+            if (serverTreeview.Nodes.Count > 0)
+            {
+                // build connect menu
+                connectMenu.MenuItems.Clear();
+                populateConnectMenu(connectMenu, (TreeNodeAccess)serverTreeview.Nodes[0]);
+            }
+        }
+
+        private void populateConnectMenu(MenuItem currentMenu, TreeNodeAccess currentNode)
+        {
+            if (!currentNode.isFolder())
+            {
+                currentMenu.MenuItems.Add(currentNode.Text, (object sender, EventArgs e) => { connectFromNode(currentNode); });
+            }
+            else
+            {
+                int count;
+
+                count = currentMenu.MenuItems.Count;
+                if (count > 0)
+                {
+                    if (currentMenu.MenuItems[count-1].Text != "-")
+                    {
+                        currentMenu.MenuItems.Add("-");
+                        count++;
+                    }
+                }
+                currentMenu.MenuItems.Add(currentNode.Text);
+                count++;
+                currentMenu.MenuItems[count-1].Enabled = false;
+                foreach (TreeNodeAccess subNode in currentNode.Nodes)
+                {
+                    populateConnectMenu(currentMenu, subNode);
+                }
+            }
+        }
+
         private void Teamlauncher_FormClosing(object sender, FormClosingEventArgs e)
         {
-            setVisible(false);
-            e.Cancel = true;
+            using (RegistryConfig reg = new RegistryConfig())
+            {
+                reg.writeInteger("LocationX", this.Location.X);
+                reg.writeInteger("LocationY", this.Location.Y);
+                reg.writeInteger("WindowWidth", this.Width);
+                reg.writeInteger("WindowHeight", this.Height);
 
-            trayIcon.BalloonTipText ="Teamlauncher is still working...";
-            trayIcon.BalloonTipTitle = "Teamlauncher";
-            trayIcon.BalloonTipIcon = ToolTipIcon.Info;
-            trayIcon.ShowBalloonTip(300);
+                Visible = false;
+                e.Cancel = true;
+
+                if (!reg.readBool("closeTip"))
+                {
+                    trayIcon.BalloonTipText = "Teamlauncher is still working...";
+                    trayIcon.BalloonTipTitle = "Teamlauncher";
+                    trayIcon.BalloonTipIcon = ToolTipIcon.Info;
+                    trayIcon.ShowBalloonTip(300);
+                    reg.writeBool("closeTip", true);
+                }
+            }
         }
 
         private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -390,7 +534,7 @@ namespace Teamlauncher
 
             protocolList = "";
             i = 0;
-            foreach (KeyValuePair<string, RemoteProtocol> item in protocols)
+            foreach (KeyValuePair<string, ProtocolType> item in protocols)
             {
                 if (i != 0)
                    protocolList += ",";
@@ -507,21 +651,55 @@ namespace Teamlauncher
             return result;
         }
 
+        private void backupDatabase()
+        {
+            string backupConfigFile;
+            string[] backups;
+            Regex regBackupFile;
+            Match matchBackupFile;
+            DateTime dateBackupFile;
+            double ageBackupFile;
+
+            // create local backup
+            backupConfigFile = databaseFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
+            if (!File.Exists(backupConfigFile))
+            {
+                File.Copy(databaseFile, backupConfigFile);
+            }
+
+            // delete old Backup
+            backups = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "teamlauncher.xml.????-??-??");
+            regBackupFile = new Regex("(2[0-9]{3})-([0-9]{2})-([0-9]{2})$");
+            dateBackupFile = new DateTime();
+            foreach (string oldBackupConfigFile in backups)
+            {
+                matchBackupFile = regBackupFile.Match(oldBackupConfigFile);
+                if (matchBackupFile.Success)
+                {
+                    dateBackupFile = new DateTime(
+                        Int32.Parse(matchBackupFile.Groups[1].ToString()),
+                        Int32.Parse(matchBackupFile.Groups[2].ToString()),
+                        Int32.Parse(matchBackupFile.Groups[3].ToString()));
+
+                    ageBackupFile = (DateTime.Now - dateBackupFile).TotalDays;
+                    if (ageBackupFile > MAX_BACKUP_KEEY_DAYS)
+                    {
+                        File.Delete(oldBackupConfigFile);
+                    }
+                }
+            }
+        }
+
         private void saveDatabase()
         {
             string content;
-            String backupConfigFile;
 
-            backupConfigFile = configFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
-            if (!File.Exists(backupConfigFile))
-            {
-                File.Copy(configFile, backupConfigFile);
-            }
+            backupDatabase();
 
             content = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" +
                 saveDatabaseSub((TreeNodeAccess)serverTreeview.Nodes[0]);
 
-            File.WriteAllText(configFile, content);
+            File.WriteAllText(databaseFile, content);
         }
 
         private void serverTreeview_KeyPress(object sender, KeyPressEventArgs e)
@@ -534,16 +712,6 @@ namespace Teamlauncher
                     e.Handled = connectFromNode(node);
                 }
             }
-        }
-
-        private void addNewFolderToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void deleteFolderToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void changePassword(TreeNodeAccess currentNode, string oldMaster, string newMaster)
@@ -599,6 +767,14 @@ namespace Teamlauncher
         {
             string currentMaster;
             string newMaster;
+            ChangePassword changeMaster;
+
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
 
             currentMaster = MasterPassword.getInstance().master;
             if (currentMaster == MasterPassword.NO_MASTER_ENTERED)
@@ -606,13 +782,16 @@ namespace Teamlauncher
                 return;
             }
 
-            ChangeMaster changeMaster;
-            changeMaster = new ChangeMaster();
+            changeMaster = new ChangePassword();
             if (changeMaster.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
-            newMaster = changeMaster.newPassword;
+            newMaster = MasterPassword.checkPasswordConformity(changeMaster.newPassword);
+            if (newMaster == null)
+            {
+                return;
+            }
 
             if (currentMaster == MasterPassword.NO_MASTER_ENABLED)
             {
@@ -630,6 +809,13 @@ namespace Teamlauncher
 
         private void newRemoteAccess(object sender, EventArgs e)
         {
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
+
             if (editDialog == null)
             {
                 editDialog = new EditRemoteAccess(protocols);
@@ -644,26 +830,43 @@ namespace Teamlauncher
             }
         }
 
-        private void editConfiguration(object sender, EventArgs e)
+        private void editConfigurationFile(object sender, EventArgs e)
         {
             ProcessStartInfo psi;
             String backupConfigFile;
 
-            backupConfigFile = configFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
-            if (!File.Exists(backupConfigFile))
+            if (currentMode == networkMode.client)
             {
-                File.Copy(configFile, backupConfigFile);
+                if (MessageBox.Show("You are in client mode, configuration file is a local copy from the server\n" +
+                    "Your changes will be lost after program restart or configuration refresh, do you wish to continue?", "Mode client",
+                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+                {
+                    return;
+                }
             }
 
-            psi = new ProcessStartInfo(editor, String.Format("\"{0}\"", configFile));
+            backupConfigFile = databaseFile + "." + DateTime.Now.ToString("yyyy-MM-dd");
+            if (!File.Exists(backupConfigFile))
+            {
+                File.Copy(databaseFile, backupConfigFile);
+            }
+
+            psi = new ProcessStartInfo(editor, String.Format("\"{0}\"", databaseFile));
             psi.UseShellExecute = true;
             psi.Verb = "runas";
             Process.Start(psi);
         }
 
-        private void editItem(object sender, EventArgs e)
+        private void editNodeItem(object sender, EventArgs e)
         {
             TreeNodeAccess node;
+
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
 
@@ -685,12 +888,20 @@ namespace Teamlauncher
                 node.Text = editDialog.RemoteName;
                 node.remoteAccess = editDialog.RemoteDetail;
                 saveDatabase();
+                //here
             }
         }
 
         private void delete(object sender, EventArgs e)
         {
             TreeNodeAccess node;
+
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
             if (node == null)
@@ -753,6 +964,13 @@ namespace Teamlauncher
             TreeNodeAccess newNode;
             ItemNameDialog diag;
 
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
+
             diag = new ItemNameDialog("New folder");
             if (diag.ShowDialog() == DialogResult.OK)
             {
@@ -805,6 +1023,13 @@ namespace Teamlauncher
             ItemNameDialog diag;
             TreeNodeAccess node;
 
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
+
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
             if (node == null)
                 return;
@@ -833,16 +1058,24 @@ namespace Teamlauncher
             if (node == null)
                 return;
 
-            Clipboard.SetText(node.Text+":="+node.remoteAccess.ToString());
+            Clipboard.SetText(Uri.EscapeDataString(node.Text)+":="+node.remoteAccess.ToString());
         }
 
         private void paste(object sender, EventArgs e)
         {
             string c;
             TreeNodeAccess newNode;
+            string masterPassword;
 
             RemoteAccess ra;
             string name;
+
+            if (currentMode == networkMode.client)
+            {
+                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                return;
+            }
 
             c = Clipboard.GetText();
             if (c == null)
@@ -851,39 +1084,123 @@ namespace Teamlauncher
             try
             {
                 ra = new RemoteAccess(c, protocols, out name);
+
+                // external paste
+                if (name == null)
+                {
+                    // generate a name
+                    name = String.Format("New {0} access", ra.protocol.name);
+                    // cipher password
+                    if ((ra.password != null) && (ra.password != ""))
+                    {
+                        masterPassword = MasterPassword.getInstance().master;
+                        if (masterPassword == MasterPassword.NO_MASTER_ENTERED)
+                        {
+                            // no master entered, delete imported password
+                            ra.password = null;
+                        }
+                        else if (masterPassword == MasterPassword.NO_MASTER_ENABLED)
+                        {
+                            // no master password exists, simply encode in base64
+                            ra.password = Convert.ToBase64String(Encoding.UTF8.GetBytes(ra.password));
+                        }
+                        else
+                        {
+                            using (Encryption enc = new Encryption(masterPassword))
+                            {
+                                ra.password = enc.EncryptString(ra.password);
+                            }
+                        }
+                    }
+                }
                 newNode = new TreeNodeAccess(ra, name);
                 addNode(newNode);
                 saveDatabase();
             }
             catch (Exception)
             {
-                MessageBox.Show("Url decoding error:\n"+c);
+                Debug.WriteLine("Teamlauncher.Paste(): Url decoding error:\n"+c);
                 return;
             }
         }
 
-        private void startupAutomaticallyToolStripMenuItem_Click(object sender, EventArgs e)
+        private void autoStartupController(object sender, EventArgs e)
         {
             RegistryKey Keyrun;
 
-            Keyrun = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            using(Keyrun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+            {
+                if (sender == null) // only set menu check state
+                {
+                    startupAutomaticallyToolStripMenuItem.Checked = (Keyrun.GetValue("Teamlauncher") != null);
+                }
+                else if (startupAutomaticallyToolStripMenuItem.Checked) // click to uncheck
+                {
+                    Keyrun.DeleteValue("Teamlauncher");
+                    startupAutomaticallyToolStripMenuItem.Checked = false;
+                }
+                else // click to check
+                {
+                    Keyrun.SetValue("Teamlauncher", "\"" + Assembly.GetEntryAssembly().Location + "\" - startup");
+                    startupAutomaticallyToolStripMenuItem.Checked = true;
+                }
+            }
+        }
 
-            if (sender == null) // only set menu check state
+        private void Teamlauncher_VisibleChanged(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Teamlauncher_VisibleChanged()");
+
+            if (!Visible)
             {
-                startupAutomaticallyToolStripMenuItem.Checked = (Keyrun.GetValue("Teamlauncher") != null);
+                return;
             }
-            else if (startupAutomaticallyToolStripMenuItem.Checked) // click to uncheck
+            else
             {
-                Keyrun.DeleteValue("Teamlauncher");
-                startupAutomaticallyToolStripMenuItem.Checked = false;
+                autoStartupController(null, new EventArgs());
+                staysOnTopController(null, new EventArgs());
+
+                if (WindowState == FormWindowState.Minimized)
+                {
+                    WindowState = FormWindowState.Normal;
+                }
+                BringToFront();
+                Activate();
+
+                serverTreeview.ExpandAll();
+                serverTreeview.Focus();
             }
-            else // click to check
+        }
+
+        private void staysOnTopController(object sender, EventArgs e)
+        {
+            RegistryConfig reg;
+
+            using (reg = new RegistryConfig())
             {
-                Keyrun.SetValue("Teamlauncher", "\"" + Assembly.GetEntryAssembly().Location + "\" - startup");
-                startupAutomaticallyToolStripMenuItem.Checked = true;
+                if (sender == null) // only set menu check state
+                {
+                    staysOntopToolStripMenuItem.Checked = reg.readBool("stayOnTop");
+                }
+                else if (staysOntopToolStripMenuItem.Checked) // click to uncheck
+                {
+                    reg.writeBool("stayOnTop", false);
+                    staysOntopToolStripMenuItem.Checked = false;
+                }
+                else // click to check
+                {
+                    reg.writeBool("stayOnTop", true);
+                    staysOntopToolStripMenuItem.Checked = true;
+                }
             }
 
-            Keyrun.Dispose();
+            TopMost = staysOntopToolStripMenuItem.Checked;
+            ShowInTaskbar = !TopMost;
+        }
+
+        void onDatabaseUpdate()
+        {
+            saveDatabase();
         }
     }
 }

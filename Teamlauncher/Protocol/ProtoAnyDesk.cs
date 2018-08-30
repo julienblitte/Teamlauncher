@@ -4,13 +4,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoAnyDesk : RemoteProtocol
+    class ProtoAnyDesk : ProtocolType
     {
         protected string clientExe;
         protected string clientVer;
         protected bool is64;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoAnyDesk()
         {
@@ -26,7 +34,7 @@ namespace Teamlauncher
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
 
-            /* Teamviewer */
+            /* AnyDesk */
             try
             {
                 using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\AnyDesk"))
@@ -65,7 +73,7 @@ namespace Teamlauncher
 				startInfo.RedirectStandardError = false;
 				startInfo.FileName = clientExe;
 
-				if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+				if ((paramSet & ProtocolType.ParamPassword) > 0)
 				{
 					startInfo.Arguments = host + " --with-password";
 

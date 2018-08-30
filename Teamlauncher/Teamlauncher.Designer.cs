@@ -59,6 +59,8 @@
             this.reloadConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             this.changeMasterPasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.staysOntopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.startupAutomaticallyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -81,7 +83,6 @@
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripSeparator();
             this.pasteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.startupAutomaticallyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.allMenuStrip.SuspendLayout();
             this.windowMenu.SuspendLayout();
             this.remoteMenuStrip.SuspendLayout();
@@ -97,6 +98,7 @@
             this.serverTreeview.ContextMenuStrip = this.allMenuStrip;
             this.serverTreeview.Location = new System.Drawing.Point(0, 27);
             this.serverTreeview.Name = "serverTreeview";
+            this.serverTreeview.ShowNodeToolTips = true;
             this.serverTreeview.Size = new System.Drawing.Size(214, 408);
             this.serverTreeview.TabIndex = 0;
             this.serverTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.serverTreeview_AfterSelect);
@@ -150,7 +152,7 @@
             this.editConfigurationFileToolStripMenuItem1.ShortcutKeyDisplayString = "F12";
             this.editConfigurationFileToolStripMenuItem1.Size = new System.Drawing.Size(181, 22);
             this.editConfigurationFileToolStripMenuItem1.Text = "Configuration &file";
-            this.editConfigurationFileToolStripMenuItem1.Click += new System.EventHandler(this.editConfiguration);
+            this.editConfigurationFileToolStripMenuItem1.Click += new System.EventHandler(this.editConfigurationFile);
             // 
             // reloadConfigurationFileToolStripMenuItem
             // 
@@ -188,14 +190,14 @@
             // 
             this.connectToolStripMenuItem1.Name = "connectToolStripMenuItem1";
             this.connectToolStripMenuItem1.ShortcutKeyDisplayString = "Enter";
-            this.connectToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.connectToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.connectToolStripMenuItem1.Text = "&Connect";
             this.connectToolStripMenuItem1.Click += new System.EventHandler(this.connect);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(144, 6);
             // 
             // newToolStripMenuItem1
             // 
@@ -203,7 +205,7 @@
             this.remoteAccessToolStripMenuItem,
             this.folderToolStripMenuItem1});
             this.newToolStripMenuItem1.Name = "newToolStripMenuItem1";
-            this.newToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.newToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.newToolStripMenuItem1.Text = "New";
             // 
             // remoteAccessToolStripMenuItem
@@ -226,15 +228,15 @@
             // toolStripMenuItem6
             // 
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(144, 6);
             // 
             // exitToolStripMenuItem1
             // 
             this.exitToolStripMenuItem1.Name = "exitToolStripMenuItem1";
             this.exitToolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.exitToolStripMenuItem1.Text = "E&xit";
-            this.exitToolStripMenuItem1.Click += new System.EventHandler(this.OnExit);
+            this.exitToolStripMenuItem1.Click += new System.EventHandler(this.onExit);
             // 
             // editToolStripMenuItem
             // 
@@ -249,6 +251,7 @@
             this.reloadConfigurationToolStripMenuItem,
             this.toolStripMenuItem7,
             this.changeMasterPasswordToolStripMenuItem,
+            this.staysOntopToolStripMenuItem,
             this.startupAutomaticallyToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -261,7 +264,7 @@
             this.editToolStripMenuItem2.ShortcutKeys = System.Windows.Forms.Keys.F2;
             this.editToolStripMenuItem2.Size = new System.Drawing.Size(196, 22);
             this.editToolStripMenuItem2.Text = "&Edit";
-            this.editToolStripMenuItem2.Click += new System.EventHandler(this.editItem);
+            this.editToolStripMenuItem2.Click += new System.EventHandler(this.editNodeItem);
             // 
             // toolStripMenuItem11
             // 
@@ -303,7 +306,7 @@
             this.configurationToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F12;
             this.configurationToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
             this.configurationToolStripMenuItem.Text = "&Configuration &file...";
-            this.configurationToolStripMenuItem.Click += new System.EventHandler(this.editConfiguration);
+            this.configurationToolStripMenuItem.Click += new System.EventHandler(this.editConfigurationFile);
             // 
             // reloadConfigurationToolStripMenuItem
             // 
@@ -325,6 +328,20 @@
             this.changeMasterPasswordToolStripMenuItem.Text = "Change &master password";
             this.changeMasterPasswordToolStripMenuItem.Click += new System.EventHandler(this.changeMasterPasswordToolStripMenuItem_Click);
             // 
+            // staysOntopToolStripMenuItem
+            // 
+            this.staysOntopToolStripMenuItem.Name = "staysOntopToolStripMenuItem";
+            this.staysOntopToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.staysOntopToolStripMenuItem.Text = "Stays on &top";
+            this.staysOntopToolStripMenuItem.Click += new System.EventHandler(this.staysOnTopController);
+            // 
+            // startupAutomaticallyToolStripMenuItem
+            // 
+            this.startupAutomaticallyToolStripMenuItem.Name = "startupAutomaticallyToolStripMenuItem";
+            this.startupAutomaticallyToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.startupAutomaticallyToolStripMenuItem.Text = "Starts with Windows";
+            this.startupAutomaticallyToolStripMenuItem.Click += new System.EventHandler(this.autoStartupController);
+            // 
             // helpToolStripMenuItem1
             // 
             this.helpToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -336,7 +353,7 @@
             // aboutToolStripMenuItem1
             // 
             this.aboutToolStripMenuItem1.Name = "aboutToolStripMenuItem1";
-            this.aboutToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.aboutToolStripMenuItem1.Size = new System.Drawing.Size(103, 22);
             this.aboutToolStripMenuItem1.Text = "&About";
             this.aboutToolStripMenuItem1.Click += new System.EventHandler(this.aboutToolStripMenuItem1_Click);
             // 
@@ -351,7 +368,7 @@
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.OnExit);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.onExit);
             // 
             // helpToolStripMenuItem
             // 
@@ -396,7 +413,7 @@
             this.editToolStripMenuItem1.ShortcutKeyDisplayString = "Ctrl+E";
             this.editToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.editToolStripMenuItem1.Text = "&Edit";
-            this.editToolStripMenuItem1.Click += new System.EventHandler(this.editItem);
+            this.editToolStripMenuItem1.Click += new System.EventHandler(this.editNodeItem);
             // 
             // copyToolStripMenuItem
             // 
@@ -493,13 +510,6 @@
             this.pasteToolStripMenuItem1.Text = "&Paste";
             this.pasteToolStripMenuItem1.Click += new System.EventHandler(this.paste);
             // 
-            // startupAutomaticallyToolStripMenuItem
-            // 
-            this.startupAutomaticallyToolStripMenuItem.Name = "startupAutomaticallyToolStripMenuItem";
-            this.startupAutomaticallyToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.startupAutomaticallyToolStripMenuItem.Text = "Starts with Windows";
-            this.startupAutomaticallyToolStripMenuItem.Click += new System.EventHandler(this.startupAutomaticallyToolStripMenuItem_Click);
-            // 
             // Teamlauncher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -513,7 +523,7 @@
             this.Text = "Teamlauncher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Teamlauncher_FormClosing);
             this.Load += new System.EventHandler(this.Teamlauncher_Load);
-            this.Shown += new System.EventHandler(this.Teamlauncher_Shown);
+            this.VisibleChanged += new System.EventHandler(this.Teamlauncher_VisibleChanged);
             this.allMenuStrip.ResumeLayout(false);
             this.windowMenu.ResumeLayout(false);
             this.windowMenu.PerformLayout();
@@ -577,6 +587,7 @@
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem10;
         private System.Windows.Forms.ToolStripMenuItem startupAutomaticallyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem staysOntopToolStripMenuItem;
     }
 }
 

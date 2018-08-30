@@ -8,11 +8,19 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoRDP : RemoteProtocol
+    class ProtoRDP : ProtocolType
     {
         protected string clientExe;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoRDP()
         {
@@ -27,7 +35,7 @@ namespace Teamlauncher
         {
             string temp = Path.GetTempFileName();
 
-            if ((paramSet & RemoteProtocol.ParamLogin) > 0)
+            if ((paramSet & ProtocolType.ParamLogin) > 0)
             {
                 File.WriteAllText(temp,
                     String.Format("displayconnectionbar:i:1\nfull address:s:{0}\nautoreconnection enabled:i:1\nprompt for credentials:i:0\nusername:s:{1}\n",

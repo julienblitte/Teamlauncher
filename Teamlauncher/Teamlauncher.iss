@@ -16,7 +16,7 @@ OutputBaseFilename=Teamlauncher Setup
 OutputDir=.
 
 [Files]
-Source: "Teamlauncher.exe"; DestDir: "{app}"
+Source: "Teamlauncher.exe"; DestDir: "{app}"; Flags:
 Source: "Teamlauncher.xml"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "Teamlauncher.exe.config"; DestDir: "{app}"
 

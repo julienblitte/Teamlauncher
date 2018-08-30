@@ -8,13 +8,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoTeamviewer : RemoteProtocol
+    class ProtoTeamviewer : ProtocolType
     {
         protected string clientExe;
         protected string clientVer;
         protected bool is64;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoTeamviewer()
         {
@@ -56,7 +64,7 @@ namespace Teamlauncher
         {
             if (clientExe != "")
             {
-                if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+                if ((paramSet & ProtocolType.ParamPassword) > 0)
                 {
                     Process.Start(clientExe,
                         String.Format("-i \"{0}\" --Password \"{1}\"", host, password)

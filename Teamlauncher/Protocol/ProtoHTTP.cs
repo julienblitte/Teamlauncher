@@ -7,11 +7,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoHTTP : RemoteProtocol
+    class ProtoHTTP : ProtocolType
     {
         protected bool secure;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoHTTP(bool secure = true)
         {
@@ -27,23 +35,23 @@ namespace Teamlauncher
 
             switch (paramSet)
             {
-                case RemoteProtocol.ParamHost:
+                case ProtocolType.ParamHost:
                     URL += String.Format("{0}", host);
                     break;
-                case RemoteProtocol.ParamHost | RemoteProtocol.ParamLogin:
+                case ProtocolType.ParamHost | ProtocolType.ParamLogin:
                     URL += String.Format("{0}@{1}", Uri.EscapeDataString(login), host);
                     break;
-                case RemoteProtocol.ParamHost | RemoteProtocol.ParamLogin | RemoteProtocol.ParamPassword:
+                case ProtocolType.ParamHost | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
                     URL += String.Format("{0}:{1}@{2}",
                         Uri.EscapeDataString(login), Uri.EscapeDataString(password), host);
                     break;
-                case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort:
+                case ProtocolType.ParamHost | ProtocolType.ParamPort:
                     URL += String.Format("{0}:{1}", host, port);
                     break;
-                case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort | RemoteProtocol.ParamLogin:
+                case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin:
                     URL += String.Format("{0}@{1}:{2}", Uri.EscapeDataString(login), host, port);
                     break;
-                case RemoteProtocol.ParamHost | RemoteProtocol.ParamPort | RemoteProtocol.ParamLogin | RemoteProtocol.ParamPassword:
+                case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
                     URL += String.Format("{0}:{1}@{2}:{3}",
                         Uri.EscapeDataString(login), Uri.EscapeDataString(password), host, port);
                     break;

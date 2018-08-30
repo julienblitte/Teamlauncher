@@ -10,9 +10,10 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    public partial class ChangeMaster : Form
+    public partial class ChangePassword : Form
     {
         private string _newPassword;
+        private int minimumLength;
 
         public string newPassword
         {
@@ -23,9 +24,11 @@ namespace Teamlauncher
                 return result;
             }
         }
-        public ChangeMaster()
+
+        public ChangePassword()
         {
             InitializeComponent();
+            minimumLength = 0;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -36,16 +39,14 @@ namespace Teamlauncher
                 return;
             }
 
-            _newPassword = MasterPassword.checkPasswordConformity(password.Text);
-            if (_newPassword == null)
+            if (password.Text.Length >= minimumLength)
             {
-                return;
+                _newPassword = password.Text;
             }
 
             password.Text = "";
             confirm.Text = "";
             DialogResult = DialogResult.OK;
         }
-
     }
 }

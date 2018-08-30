@@ -12,13 +12,13 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    public delegate Action<bool> something(bool passwordCached);
+    public delegate Action<bool> cacheChangeDelegate(bool passwordCached);
 
     public partial class MasterPassword : Form
     {
         private static MasterPassword instance = null;
         private string _master;
-        public something onCacheChanged;
+        public cacheChangeDelegate onCacheChanged;
 
         public string master
         {

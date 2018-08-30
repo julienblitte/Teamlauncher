@@ -9,11 +9,19 @@ using System.Windows.Forms;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoSerial : RemoteProtocol
+    class ProtoSerial : ProtocolType
     {
         protected string clientExe;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamHost | ParamPort;
+            }
+        }
 
         public ProtoSerial()
         {
@@ -56,30 +64,30 @@ namespace Teamlauncher
             if (serialPortList.Count() == 1)
             {
                 host = serialPortList[0];
-                paramSet |= RemoteProtocol.ParamHost;
+                paramSet |= ProtocolType.ParamHost;
             }
 
             if (clientExe != "")
             {
                 /* no valid provided, try to build from "port" number value */
-                if (((paramSet & RemoteProtocol.ParamHost) == 0) || !(validSerialPortName.IsMatch(host)))
+                if (((paramSet & ProtocolType.ParamHost) == 0) || !(validSerialPortName.IsMatch(host)))
                 {
-                    if (((paramSet & RemoteProtocol.ParamPort) > 0) && (port >= 1 && port <= 16))
+                    if (((paramSet & ProtocolType.ParamPort) > 0) && (port >= 1 && port <= 16))
                     {
                         host = String.Format("COM{0}", port);
                         if (serialPortList.Contains(host))
                         {
-                            paramSet |= RemoteProtocol.ParamHost;
+                            paramSet |= ProtocolType.ParamHost;
                         }
                         else
                         {
-                            paramSet &= ~RemoteProtocol.ParamHost;
+                            paramSet &= ~ProtocolType.ParamHost;
                         }
                     }
                 }
 
                 /* we have a host and it is valid serial port name */
-                if (((paramSet & RemoteProtocol.ParamHost) > 0) && (validSerialPortName.IsMatch(host)))
+                if (((paramSet & ProtocolType.ParamHost) > 0) && (validSerialPortName.IsMatch(host)))
                 {
                     if (!serialPortList.Contains(host))
                     {

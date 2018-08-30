@@ -30,11 +30,9 @@
         {
             this.okButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.portCustom = new System.Windows.Forms.CheckBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.login = new System.Windows.Forms.TextBox();
-            this.password = new System.Windows.Forms.TextBox();
             this.protocol = new System.Windows.Forms.ComboBox();
             this.port = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,57 +40,46 @@
             this.name = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.passwordButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.port)).BeginInit();
             this.SuspendLayout();
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(188, 210);
+            this.okButton.Location = new System.Drawing.Point(165, 210);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 50;
-            this.okButton.Text = "Ok";
+            this.okButton.Text = "&Ok";
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.ok_Click);
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.portCustom);
-            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.passwordButton);
+            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.login);
-            this.groupBox1.Controls.Add(this.password);
             this.groupBox1.Controls.Add(this.protocol);
             this.groupBox1.Controls.Add(this.port);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.host);
             this.groupBox1.Location = new System.Drawing.Point(18, 44);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(245, 149);
+            this.groupBox1.Size = new System.Drawing.Size(222, 149);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Protocol";
             // 
-            // portCustom
+            // label4
             // 
-            this.portCustom.AutoSize = true;
-            this.portCustom.Location = new System.Drawing.Point(116, 43);
-            this.portCustom.Name = "portCustom";
-            this.portCustom.Size = new System.Drawing.Size(51, 17);
-            this.portCustom.TabIndex = 46;
-            this.portCustom.Text = "Port :";
-            this.portCustom.UseVisualStyleBackColor = true;
-            this.portCustom.CheckedChanged += new System.EventHandler(this.portNotDefault_CheckedChanged);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(113, 95);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 13);
-            this.label2.TabIndex = 43;
-            this.label2.Text = "Password";
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(113, 47);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(26, 13);
+            this.label4.TabIndex = 46;
+            this.label4.Text = "Port";
             // 
             // label1
             // 
@@ -109,15 +96,6 @@
             this.login.Name = "login";
             this.login.Size = new System.Drawing.Size(100, 20);
             this.login.TabIndex = 44;
-            // 
-            // password
-            // 
-            this.password.Location = new System.Drawing.Point(116, 111);
-            this.password.Name = "password";
-            this.password.Size = new System.Drawing.Size(111, 20);
-            this.password.TabIndex = 45;
-            this.password.UseSystemPasswordChar = true;
-            this.password.Enter += new System.EventHandler(this.password_Enter);
             // 
             // protocol
             // 
@@ -139,7 +117,7 @@
             0,
             0});
             this.port.Name = "port";
-            this.port.Size = new System.Drawing.Size(111, 20);
+            this.port.Size = new System.Drawing.Size(92, 20);
             this.port.TabIndex = 41;
             this.port.ValueChanged += new System.EventHandler(this.port_ValueChanged);
             // 
@@ -163,7 +141,7 @@
             // 
             this.name.Location = new System.Drawing.Point(56, 10);
             this.name.Name = "name";
-            this.name.Size = new System.Drawing.Size(100, 20);
+            this.name.Size = new System.Drawing.Size(184, 20);
             this.name.TabIndex = 10;
             // 
             // label5
@@ -182,9 +160,19 @@
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 51;
-            this.cancelButton.Text = "Cancel";
+            this.cancelButton.Text = "&Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+            // 
+            // passwordButton
+            // 
+            this.passwordButton.Location = new System.Drawing.Point(116, 109);
+            this.passwordButton.Name = "passwordButton";
+            this.passwordButton.Size = new System.Drawing.Size(92, 23);
+            this.passwordButton.TabIndex = 47;
+            this.passwordButton.Text = "&Password...";
+            this.passwordButton.UseVisualStyleBackColor = true;
+            this.passwordButton.Click += new System.EventHandler(this.password_Click);
             // 
             // EditRemoteAccess
             // 
@@ -192,7 +180,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(278, 246);
+            this.ClientSize = new System.Drawing.Size(256, 246);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.name);
@@ -202,7 +190,9 @@
             this.Name = "EditRemoteAccess";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Remote access detail";
+            this.TopMost = true;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.EditRemoteAccess_FormClosed);
+            this.Shown += new System.EventHandler(this.EditRemoteAccess_Shown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.port)).EndInit();
@@ -221,10 +211,9 @@
         private System.Windows.Forms.TextBox name;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button cancelButton;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox login;
-        private System.Windows.Forms.TextBox password;
-        private System.Windows.Forms.CheckBox portCustom;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button passwordButton;
     }
 }

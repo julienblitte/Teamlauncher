@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -9,25 +10,13 @@ namespace Teamlauncher
 {
     public partial class EditRemoteAccess : Form
     {
-        private Dictionary<string, RemoteProtocol> protocolList;
+        private Dictionary<string, ProtocolType> protocolList;
         public string RemoteName;
         public RemoteAccess RemoteDetail;
-        public int defaultPort
-        {
-            get
-            {
-                try
-                {
-                    return protocolList[protocol.Text].defaultPort;
-                }
-                catch (Exception)
-                {
-                    return 0;
-                }
-            }
-        }
+        private int defaultPort;
+        private string password;
 
-        public EditRemoteAccess(Dictionary<string, RemoteProtocol> protocolList)
+        public EditRemoteAccess(Dictionary<string, ProtocolType> protocolList)
         {
             InitializeComponent();
 
@@ -37,7 +26,8 @@ namespace Teamlauncher
 
         private void EditRemoteAccess_FormClosed(object sender, FormClosedEventArgs e)
         {
-            password.Text = "";
+            name.Text = "";
+            password = "";
         }
 
         private void ok_Click(object sender, EventArgs e)
@@ -53,35 +43,14 @@ namespace Teamlauncher
             RemoteName = name.Text;
             RemoteDetail = new RemoteAccess();
             RemoteDetail.protocol = protocolList[protocol.Text];
-            if (password.Text != "")
-            {
-                master = MasterPassword.getInstance().master;
-                if (master == MasterPassword.NO_MASTER_ENABLED)
-                {
-                    RemoteDetail.password = Convert.ToBase64String(Encoding.UTF8.GetBytes(password.Text));
-                }
-                else if (master != MasterPassword.NO_MASTER_ENTERED)
-                {
-                    using (Encryption enc = new Encryption(master))
-                    {
-                        RemoteDetail.password = enc.EncryptString(password.Text);
-                    }
-                }
-                else // not entered
-                {
-                    name.Text = "";
-                    password.Text = "";
-                    DialogResult = DialogResult.Abort;
-                    return;
-                }
-            }
- 
+
             RemoteDetail.host = (host.Text != "" ? host.Text : null);
-            RemoteDetail.login = (login.Text != "" ? login.Text :null);
+            RemoteDetail.login = (login.Text != "" ? login.Text : null);
+            RemoteDetail.password = (password != "" ? password : null);
             RemoteDetail.port = (int)port.Value;
 
             name.Text = "";
-            password.Text = "";
+            password = "";
             DialogResult = DialogResult.OK;
         }
 
@@ -92,36 +61,16 @@ namespace Teamlauncher
 
         public DialogResult ShowDialog(string inName, RemoteAccess ra)
         {
+            protocol.Text = ra.protocol.name;
+
             name.Text = inName;
             host.Text = ra.host;
-            if (ra.login != null)
-            {
-                login.Text = ra.login;
-            }
+            login.Text = (ra.login != null ? ra.login : "");
             port.Value = ra.port;
-            portCustom.Checked = (ra.port != ra.protocol.defaultPort);
-            protocol.Text = ra.protocol.name;
 
             if (ra.password != null)
             {
-                string master;
-
-                master = MasterPassword.getInstance().master;
-                if (master == MasterPassword.NO_MASTER_ENTERED)
-                {
-                    return DialogResult.Cancel;
-                }
-                else if (master == MasterPassword.NO_MASTER_ENABLED)
-                {
-                    password.Text = Encoding.UTF8.GetString(Convert.FromBase64String(ra.password));
-                }
-                else
-                {
-                    using (Encryption enc = new Encryption(master))
-                    {
-                        password.Text = enc.DecryptString(ra.password);
-                    }
-                }
+                password = ra.password;
             }
 
             return this.ShowDialog();
@@ -131,34 +80,62 @@ namespace Teamlauncher
         {
             if (port.Value == defaultPort)
             {
-                portCustom.Checked = false;
                 port.ForeColor = Color.Gray;
             }
             else
             {
-                portCustom.Checked = true;
                 port.ForeColor = Color.Black;
-            }
-        }
-
-        private void portNotDefault_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!portCustom.Checked)
-            {
-                port.Value = defaultPort;
             }
         }
 
         private void protocol_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ProtocolType p;
+            p = protocolList[protocol.Text];
+
+            host.Enabled = ((p.AllowedParameters & ProtocolType.ParamHost) != 0);
+            login.Enabled = ((p.AllowedParameters & ProtocolType.ParamLogin) != 0);
+            port.Enabled = ((p.AllowedParameters & ProtocolType.ParamPort) != 0);
+            passwordButton.Enabled = ((p.AllowedParameters & ProtocolType.ParamPassword) != 0);
+
+            defaultPort = p.defaultPort;
             port.Value = defaultPort;
-            // needed because sometimes port do not get changed
-            portCustom.Checked = false;
         }
 
-        private void password_Enter(object sender, EventArgs e)
+
+        private void EditRemoteAccess_Shown(object sender, EventArgs e)
         {
-            password.Text = "";
+            cancelButton.Focus();
+        }
+
+        private void password_Click(object sender, EventArgs e)
+        {
+            ChangePassword cp;
+            string master;
+
+            master = MasterPassword.getInstance().master;
+            if (master == MasterPassword.NO_MASTER_ENTERED)
+            {
+                return;
+            }
+
+            cp = new ChangePassword();
+            if (cp.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            if (master == MasterPassword.NO_MASTER_ENABLED)
+            {
+                password = Convert.ToBase64String(Encoding.UTF8.GetBytes(cp.newPassword));
+            }
+            else
+            {
+                using (Encryption enc = new Encryption(master))
+                {
+                    password = enc.EncryptString(cp.newPassword);
+                }
+            }
         }
     }
 }

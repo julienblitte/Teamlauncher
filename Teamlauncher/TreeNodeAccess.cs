@@ -16,6 +16,15 @@ namespace Teamlauncher
                 _remoteAccess = value;
                 this.SelectedImageIndex = value.protocol.id;
                 this.ImageIndex = value.protocol.id;
+                this.ToolTipText = String.Format("{0} ({1})", value.host, value.protocol.ToString());
+                /*
+                this.ToolTipText = (value.login != null ? String.Format("{0} ({1}) - {3}",
+                    value.host, value.protocol.ToString(), value.login)
+                    :
+                    String.Format("{0} ({1})",
+                        value.host, value.protocol.ToString())
+                );
+                */
             }
             get { return _remoteAccess; }
         }
@@ -32,6 +41,8 @@ namespace Teamlauncher
             this._remoteAccess = remoteAccess;
             this.SelectedImageIndex = remoteAccess.protocol.id;
             this.ImageIndex = _remoteAccess.protocol.id;
+            this.ToolTipText = String.Format("$1 ($2) - $3",
+                remoteAccess.host, remoteAccess.protocol.ToString(), remoteAccess.login);
         }
 
         public bool isFolder()

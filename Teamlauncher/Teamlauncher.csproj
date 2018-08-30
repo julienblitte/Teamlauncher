@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pipe.cs" />
     <Compile Include="ProgramSingleRun.cs" />
     <Compile Include="ItemName.cs">
       <SubType>Form</SubType>
@@ -78,11 +79,11 @@
     </Compile>
     <Compile Include="Protocol\ProtoAnyDesk.cs" />
     <Compile Include="Encryption.cs" />
-    <Compile Include="ChangeMaster.cs">
+    <Compile Include="ChangePassword.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ChangeMaster.Designer.cs">
-      <DependentUpon>ChangeMaster.cs</DependentUpon>
+    <Compile Include="ChangePassword.Designer.cs">
+      <DependentUpon>ChangePassword.cs</DependentUpon>
     </Compile>
     <Compile Include="Hash.cs" />
     <Compile Include="EditRemoteAccess.cs">
@@ -97,12 +98,14 @@
     <Compile Include="MasterPassword.Designer.cs">
       <DependentUpon>MasterPassword.cs</DependentUpon>
     </Compile>
+    <Compile Include="Protocol\ProtoDebug.cs" />
     <Compile Include="Protocol\ProtoFTP.cs" />
     <Compile Include="Protocol\ProtoHTTP.cs" />
     <Compile Include="Protocol\ProtoRDP.cs" />
     <Compile Include="Protocol\ProtoSerial.cs" />
+    <Compile Include="RegistryConfig.cs" />
     <Compile Include="RemoteAccess.cs" />
-    <Compile Include="RemoteProtocol.cs" />
+    <Compile Include="ProtocolType.cs" />
     <Compile Include="Protocol\ProtoSCP.cs" />
     <Compile Include="Protocol\ProtoSSH.cs" />
     <Compile Include="Teamlauncher.cs">
@@ -117,8 +120,8 @@
     <Compile Include="Protocol\ProtoTelnet.cs" />
     <Compile Include="TreeNodeAccess.cs" />
     <Compile Include="Protocol\ProtoVNC.cs" />
-    <EmbeddedResource Include="ChangeMaster.resx">
-      <DependentUpon>ChangeMaster.cs</DependentUpon>
+    <EmbeddedResource Include="ChangePassword.resx">
+      <DependentUpon>ChangePassword.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EditRemoteAccess.resx">
       <DependentUpon>EditRemoteAccess.cs</DependentUpon>
@@ -153,11 +156,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Resources\anydesk.png" />
+    <Content Include="Resources\debug.png" />
     <Content Include="Resources\ftp.png" />
     <Content Include="Resources\group.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

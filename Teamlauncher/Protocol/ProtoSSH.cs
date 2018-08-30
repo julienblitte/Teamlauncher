@@ -8,11 +8,19 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Teamlauncher
+namespace Teamlauncher.Protocol
 {
-    class ProtoSSH : RemoteProtocol
+    class ProtoSSH : ProtocolType
     {
         protected string clientExe;
+
+        public override int AllowedParameters
+        {
+            get
+            {
+                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+            }
+        }
 
         public ProtoSSH()
         {
@@ -35,7 +43,7 @@ namespace Teamlauncher
             {
                 String puttyParameters = "";
 
-                if ((paramSet & RemoteProtocol.ParamLogin) > 0)
+                if ((paramSet & ProtocolType.ParamLogin) > 0)
                 {
                     puttyParameters += String.Format("\"{0}@{1}\"", login, host);
                 }
@@ -44,11 +52,11 @@ namespace Teamlauncher
                     puttyParameters += String.Format("\"{0}\"", host);
                 }
 
-                if ((paramSet & RemoteProtocol.ParamPort) > 0)
+                if ((paramSet & ProtocolType.ParamPort) > 0)
                 {
                     puttyParameters += String.Format(" -P {0}", port);
                 }
-                if ((paramSet & RemoteProtocol.ParamPassword) > 0)
+                if ((paramSet & ProtocolType.ParamPassword) > 0)
                 {
                     puttyParameters += String.Format(" -pw \"{0}\"", password);
                 }
