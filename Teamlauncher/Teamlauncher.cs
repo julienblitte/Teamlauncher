@@ -30,7 +30,6 @@ namespace Teamlauncher
         private enum networkMode { single, server, client, debug };
         private networkMode currentMode;
 
-        private const string REGISTRY_CONFIG = @"Software\Teamlauncher";
         private const int MAX_BACKUP_KEEY_DAYS = 7;
 
         public Teamlauncher(bool visible = true)
@@ -61,7 +60,7 @@ namespace Teamlauncher
             registerProtocol(new ProtoAnyDesk());
             registerProtocol(new ProtoSerial());
             
-            Debug.WriteLine("Current mode is "+ currentMode.ToString());
+            Trace.WriteLine("Current mode is "+ currentMode.ToString());
             if (currentMode == networkMode.debug)
             {
                 registerProtocol(new ProtoDebug());
@@ -108,7 +107,7 @@ namespace Teamlauncher
         {
             MouseEventArgs me = (MouseEventArgs)e;
 
-            if (me.Button == System.Windows.Forms.MouseButtons.Left)
+            if (me.Button == MouseButtons.Left)
             {
                 Visible = !Visible;
             }
@@ -148,34 +147,14 @@ namespace Teamlauncher
             Environment.Exit(0);
         }
 
-        private void loadConfig()
-        {
-            string appFolder;
-            databaseFile = "teamlauncher.xml";
-
-            Debug.WriteLine("Teamlauncher.loadConfig()");
-
-            appFolder = AppDomain.CurrentDomain.BaseDirectory;
-            if (!appFolder.EndsWith("\\"))
-            {
-                appFolder += "\\";
-            }
-            databaseFile = appFolder + "teamlauncher.xml";
-
-            // try to get better editor than notepad (notpead++ only for now)
-            editor = "notepad.exe";
-            RegistryKey npp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe");
-            if (npp != null)
-            {
-                editor = "notepad++.exe";
-            }
-        }
 
         private int onMonitor(Point pt)
         {
             for (int i = 0; i < Screen.AllScreens.Length; i++)
             {
-                Rectangle monitor = Screen.AllScreens[i].Bounds;
+                Rectangle monitor;
+                
+                monitor = Screen.AllScreens[i].Bounds;
 
                 if ((monitor.Left <= pt.X) && (pt.X <= monitor.Right) &&
                     (monitor.Top <= pt.Y) && (pt.Y <= monitor.Bottom))
@@ -190,29 +169,79 @@ namespace Teamlauncher
         {
             int x, y, h, w;
 
-            loadConfig();
-            reloadDatabase();
+            Trace.WriteLine("Teamlauncher_Load()");
 
-            trayMenu.MenuItems.Add(0, connectMenu);
-
+            // load configuration from registry
             using (RegistryConfig reg = new RegistryConfig())
             {
                 x = reg.readInteger("LocationX");
                 y = reg.readInteger("LocationY");
                 h = reg.readInteger("WindowHeight");
                 w = reg.readInteger("WindowWidth");
+
+                editor = reg.readString("Editor");
+                if (editor == "")
+                {
+                    // try to get better editor than notepad (notpead++ only for now)
+                    editor = "notepad.exe";
+                    RegistryKey npp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe");
+                    if (npp != null)
+                    {
+                        editor = "notepad++.exe";
+                    }
+                    reg.writeString("Editor", editor);
+                }
+
+                databaseFile = reg.readString("Database");
+                // make sure we actually have a database file
+                if (databaseFile == "" || !File.Exists(databaseFile))
+                {
+                    // should be in roaming app data 
+                    databaseFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "teamlauncher.xml");
+
+                    var programFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "teamlauncher.xml");
+
+                    if (File.Exists(databaseFile))
+                    {
+                        reg.writeString("Database", databaseFile);
+                    }
+                    else if (File.Exists(programFile))
+                    {
+                        // if no database, move the one in application folder
+                        try
+                        {
+                            File.Move(programFile, databaseFile);
+                            reg.writeString("Database", databaseFile);
+                        }
+                        catch (Exception)
+                        {
+                            Trace.WriteLine(String.Format("Database file copy {0} to {1} failed.", programFile, databaseFile));
+                        }
+                    }
+                }
             }
 
+            reloadDatabase();
+
+            trayMenu.MenuItems.Add(0, connectMenu);
+
+            // try to restore window position
             if (h > 0 && w > 0)
             {
                 Point topLeft, bottomRight;
                 int monitor1, monitor2;
+
+                Trace.WriteLine(String.Format("Window position: trying restore to [({0},{1}),({2},{3})]",
+                    x, y, x + w, y + h));
 
                 topLeft = new Point(x+1, y+1);
                 bottomRight = new Point(x + w -1, y + h -1);
 
                 monitor1 = onMonitor(topLeft);
                 monitor2 = onMonitor(bottomRight);
+
+                Trace.WriteLine(String.Format("Window top left ({0},{1}) is on monitor #{2}", x, y, monitor1));
+                Trace.WriteLine(String.Format("Window bottom right ({0},{1}) is on monitor #{2}", x + w, y + h, monitor2));
 
                 if ((monitor1 == monitor2) && (monitor1 != 0))
                 {
@@ -236,7 +265,7 @@ namespace Teamlauncher
 
         private void reloadDatabase()
         {
-            Debug.WriteLine("Teamlauncher.reloadDatabase()");
+            Trace.WriteLine("Teamlauncher.reloadDatabase()");
 
             // Assign the ImageList to the TreeView.
             serverTreeview.ImageList = iconList;
@@ -307,7 +336,7 @@ namespace Teamlauncher
             {
                 using (File.Create(databaseFile))
                 {
-                    MessageBox.Show(this, "Configuration file " + databaseFile + " does not exists, created.", "Configuration", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    Trace.WriteLine("Configuration file " + databaseFile + " does not exists, created.");
                 }
             }
 
@@ -380,8 +409,9 @@ namespace Teamlauncher
                             inTreeNode.remoteAccess = access;
                         }
                     }
-                    catch (KeyNotFoundException) {
-                        MessageBox.Show("Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
+                    catch (KeyNotFoundException)
+                    {
+                        Trace.WriteLine("Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
                     }
                 }
                 else
@@ -1119,7 +1149,7 @@ namespace Teamlauncher
             }
             catch (Exception)
             {
-                Debug.WriteLine("Teamlauncher.Paste(): Url decoding error:\n"+c);
+                Trace.WriteLine("Teamlauncher.Paste(): Url decoding error:\n"+c);
                 return;
             }
         }
@@ -1149,7 +1179,7 @@ namespace Teamlauncher
 
         private void Teamlauncher_VisibleChanged(object sender, EventArgs e)
         {
-            Debug.WriteLine("Teamlauncher_VisibleChanged()");
+            Trace.WriteLine("Teamlauncher_VisibleChanged()");
 
             if (!Visible)
             {

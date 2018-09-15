@@ -35,7 +35,7 @@ namespace Teamlauncher
                 // ran twice at startup: exit
                 if (startup)
                 {
-                    Debug.WriteLine("Main(): ran twice at startup, exiting");
+                    Trace.WriteLine("Main(): ran twice at startup, exiting");
 
                     return;
                 }
@@ -44,13 +44,13 @@ namespace Teamlauncher
                 hwnd = ProgramSingleRun.FindPidWindows(runningInstance.Id, "Teamlauncher");
                 if (hwnd != IntPtr.Zero)
                 {
-                    Debug.WriteLine("Main(): ran twice showing existing window");
+                    Trace.WriteLine("Main(): ran twice showing existing window");
                     ProgramSingleRun.BringToFront(hwnd);
                     return;
                 }
 
                 // Not startup mode, no Window existing, ask other program to quit
-                Debug.WriteLine("Main(): ran twice notifying other program");
+                Trace.WriteLine("Main(): ran twice notifying other program");
                 if (!ProgramSingleRun.Notify())
                 {
                     // if it fails, do not continue, alert and exit
@@ -67,7 +67,7 @@ namespace Teamlauncher
 
             ProgramSingleRun.OnNotification(
                 (String s) => {
-                    Debug.WriteLine("ProgramSingleRun.OnNotification() from thread " + Thread.CurrentThread.ManagedThreadId.ToString());
+                    Trace.WriteLine("ProgramSingleRun.OnNotification() from thread " + Thread.CurrentThread.ManagedThreadId.ToString());
                     MainForm.exit();
                 }
             );

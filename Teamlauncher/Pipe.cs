@@ -54,7 +54,7 @@ namespace Teamlauncher
 
                 // Convert byte buffer to string
                 string stringData = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-                Debug.WriteLine(stringData + Environment.NewLine);
+                Trace.WriteLine(stringData + Environment.NewLine);
 
                 // Pass message back to calling form
                 PipeMessage.Invoke(stringData);
