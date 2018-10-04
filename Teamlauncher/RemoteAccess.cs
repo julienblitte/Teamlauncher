@@ -14,6 +14,7 @@ namespace Teamlauncher
         public int port;
         public string login;
         public string password;
+        public string resource;
         public ProtocolType protocol;
 
         public override string ToString()
@@ -34,6 +35,11 @@ namespace Teamlauncher
                 result += ":" + port;
             }
 
+            if ((resource != null) && (resource != ""))
+            {
+                result += "/" + resource;
+            }
+
             return result;
         }
 
@@ -46,7 +52,7 @@ namespace Teamlauncher
             Match reg;
             int i, j;
 
-            reg = Regex.Match(Url, "^([^:]+:=)?[a-zA-Z]+://([^:@]*(:[^:@]+)?@)?[^:@]+(:[0-9]+)?$");
+            reg = Regex.Match(Url, "^([^:]+:=)?[a-zA-Z]+://([^:@]*(:[^:@]+)?@)?[^:@]+(:[0-9]+)?(/[^:@ ]+)?$");
 
             Debug.WriteLine("RemoteAccess: new object from \"" + Url + "\"");
 
@@ -79,6 +85,15 @@ namespace Teamlauncher
             protocol = protocolList[reg.Groups[1].ToString()];
             Url = Url.Substring(protocol.name.Length + 3);
             Debug.WriteLine("RemoteAccess: protocol = \"" + protocol.name + "\"");
+
+            // check if any resource
+            i = Url.IndexOf("/");
+            if (i != -1)
+            {
+                resource = Url.Substring(i + 1);
+                Url = Url.Substring(0, i);
+                Debug.WriteLine("RemoteAccess: resource = \"" + resource + "\"");
+            }
 
             // check if optional login/password group is here
             i = Url.IndexOf("@");

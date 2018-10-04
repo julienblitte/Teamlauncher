@@ -20,7 +20,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+                return ParamLogin | ParamPassword | ParamHost | ParamPort | ParamResource;
             }
         }
 
@@ -32,6 +32,8 @@ namespace Teamlauncher.Protocol
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
+
+            Trace.WriteLine("Protocol module " + name + " loaded");
 
             /* WinSCP */
             try
@@ -55,36 +57,36 @@ namespace Teamlauncher.Protocol
                 clientExe = "";
             }
         }
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             if (clientExe != "")
             {
-                String WinSCPParameter = "";
+                string URL = "scp://";
 
-                switch(paramSet)
+                if ((paramSet & ProtocolType.ParamLogin) != 0)
                 {
-                    case ProtocolType.ParamHost :
-                        WinSCPParameter = String.Format("\"scp://{0}\"", host);
-                        break;
-                    case ProtocolType.ParamHost | ProtocolType.ParamLogin :
-                        WinSCPParameter = String.Format("\"scp://{0}@{1}\"", Uri.EscapeDataString(login), host);
-                        break;
-                    case ProtocolType.ParamHost|ProtocolType.ParamLogin | ProtocolType.ParamPassword:
-                        WinSCPParameter = String.Format("\"scp://{0}:{1}@{2}\"",
-                            Uri.EscapeDataString(login), Uri.EscapeDataString(password), host);
-                        break;
-                    case ProtocolType.ParamHost | ProtocolType.ParamPort:
-                        WinSCPParameter = String.Format("\"scp://{0}:{1}\"", host, port);
-                        break;
-                    case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin:
-                        WinSCPParameter = String.Format("\"scp://{0}@{1}:{2}\"", Uri.EscapeDataString(login), host, port);
-                        break;
-                    case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
-                        WinSCPParameter = String.Format("\"scp://{0}:{1}@{2}:{3}\"",
-                            Uri.EscapeDataString(login), Uri.EscapeDataString(password), host, port);
-                        break;
+                    if ((paramSet & ProtocolType.ParamPassword) != 0)
+                    {
+                        URL += String.Format("{0}:{1}@", Uri.EscapeDataString(login), Uri.EscapeDataString(password));
+                    }
+                    else
+                    {
+                        URL += String.Format("{0}@", Uri.EscapeDataString(login));
+                    }
                 }
-                Process.Start(clientExe, WinSCPParameter);
+                URL += ProtocolType.ParamHost;
+
+                if ((paramSet & ProtocolType.ParamPort) != 0)
+                {
+                    URL += String.Format(":{0}", port);
+                }
+                if ((paramSet & ProtocolType.ParamResource) != 0)
+                {
+                    URL += String.Format("/{0}", resource);
+                }
+
+                URL = "\"" + URL + "\"";
+                Process.Start(clientExe, URL);
             }
             else
             {

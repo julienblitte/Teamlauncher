@@ -22,7 +22,8 @@ namespace Teamlauncher
         public const int ParamPassword = 0x02;
         public const int ParamHost = 0x04;
         public const int ParamPort = 0x08;
-        public const int ParamAll = 0x0F;
+        public const int ParamResource = 0x10;
+        public const int ParamAll = 0x1F;
 
         public abstract int AllowedParameters
         {
@@ -40,6 +41,6 @@ namespace Teamlauncher
             return name;
         }
 
-        public abstract void run(string login, string password, string host, int port, int paramSet);
+        public abstract void run(int paramSet, string login, string password, string host, int port, string resource);
     }
 }

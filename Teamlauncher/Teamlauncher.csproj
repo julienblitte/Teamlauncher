@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="Protocol\ProtoDebug.cs" />
     <Compile Include="Protocol\ProtoFTP.cs" />
+    <Compile Include="Protocol\ProtoRTSP.cs" />
     <Compile Include="Protocol\ProtoHTTP.cs" />
     <Compile Include="Protocol\ProtoRDP.cs" />
     <Compile Include="Protocol\ProtoSerial.cs" />
@@ -173,6 +174,7 @@
     <None Include="Resources\icon.ico" />
     <Content Include="Resources\http.png" />
     <Content Include="Resources\rdp.png" />
+    <Content Include="Resources\rtsp.png" />
     <Content Include="Resources\scp.png" />
     <Content Include="Resources\serial.png" />
     <Content Include="Resources\ssh.png" />

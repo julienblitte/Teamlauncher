@@ -20,7 +20,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamPassword | ParamHost | ParamPort;
+                return ParamPassword | ParamHost;
             }
         }
 
@@ -37,6 +37,8 @@ namespace Teamlauncher.Protocol
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
+
+            Trace.WriteLine("Protocol module " + name + " loaded");
 
             /* Teamviewer */
             try
@@ -60,7 +62,7 @@ namespace Teamlauncher.Protocol
                 clientExe = "";
             }
         }
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             if (clientExe != "")
             {

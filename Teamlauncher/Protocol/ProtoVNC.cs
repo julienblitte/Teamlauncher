@@ -34,6 +34,8 @@ namespace Teamlauncher.Protocol
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
 
+            Trace.WriteLine("Protocol module " + name + " loaded");
+
             /* UltraVNC */
             try
             {
@@ -68,7 +70,7 @@ namespace Teamlauncher.Protocol
             }
         }
 
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             if (UltraVNCExe != "")
             {

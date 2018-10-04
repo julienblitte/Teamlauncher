@@ -133,6 +133,16 @@ namespace Teamlauncher.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap rtsp {
+            get {
+                object obj = ResourceManager.GetObject("rtsp", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap scp {
             get {
                 object obj = ResourceManager.GetObject("scp", resourceCulture);

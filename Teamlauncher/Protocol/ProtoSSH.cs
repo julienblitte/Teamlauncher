@@ -28,6 +28,8 @@ namespace Teamlauncher.Protocol
             name = "ssh";
             defaultPort = 22;
 
+            Trace.WriteLine("Protocol module " + name + " loaded");
+
             if (File.Exists(Properties.Settings.Default.Putty))
             {
                 clientExe = Properties.Settings.Default.Putty;
@@ -37,7 +39,7 @@ namespace Teamlauncher.Protocol
                 clientExe = "";
             }
         }
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             if (clientExe != "")
             {

@@ -30,6 +30,7 @@
         {
             this.okButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.passwordButton = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.login = new System.Windows.Forms.TextBox();
@@ -40,14 +41,15 @@
             this.name = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.cancelButton = new System.Windows.Forms.Button();
-            this.passwordButton = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.resource = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.port)).BeginInit();
             this.SuspendLayout();
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(165, 210);
+            this.okButton.Location = new System.Drawing.Point(165, 250);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 50;
@@ -57,6 +59,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.resource);
+            this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.passwordButton);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label1);
@@ -67,10 +71,20 @@
             this.groupBox1.Controls.Add(this.host);
             this.groupBox1.Location = new System.Drawing.Point(18, 44);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(222, 149);
+            this.groupBox1.Size = new System.Drawing.Size(222, 189);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Protocol";
+            // 
+            // passwordButton
+            // 
+            this.passwordButton.Location = new System.Drawing.Point(116, 109);
+            this.passwordButton.Name = "passwordButton";
+            this.passwordButton.Size = new System.Drawing.Size(92, 23);
+            this.passwordButton.TabIndex = 47;
+            this.passwordButton.Text = "&Password...";
+            this.passwordButton.UseVisualStyleBackColor = true;
+            this.passwordButton.Click += new System.EventHandler(this.password_Click);
             // 
             // label4
             // 
@@ -110,6 +124,7 @@
             // port
             // 
             this.port.BackColor = System.Drawing.SystemColors.Window;
+            this.port.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.port.Location = new System.Drawing.Point(116, 64);
             this.port.Maximum = new decimal(new int[] {
             65535,
@@ -156,7 +171,7 @@
             // cancelButton
             // 
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(18, 210);
+            this.cancelButton.Location = new System.Drawing.Point(18, 250);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 51;
@@ -164,15 +179,21 @@
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
-            // passwordButton
+            // label2
             // 
-            this.passwordButton.Location = new System.Drawing.Point(116, 109);
-            this.passwordButton.Name = "passwordButton";
-            this.passwordButton.Size = new System.Drawing.Size(92, 23);
-            this.passwordButton.TabIndex = 47;
-            this.passwordButton.Text = "&Password...";
-            this.passwordButton.UseVisualStyleBackColor = true;
-            this.passwordButton.Click += new System.EventHandler(this.password_Click);
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 138);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(53, 13);
+            this.label2.TabIndex = 48;
+            this.label2.Text = "Resource";
+            // 
+            // resource
+            // 
+            this.resource.Location = new System.Drawing.Point(7, 155);
+            this.resource.Name = "resource";
+            this.resource.Size = new System.Drawing.Size(201, 20);
+            this.resource.TabIndex = 49;
             // 
             // EditRemoteAccess
             // 
@@ -180,13 +201,15 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(256, 246);
+            this.ClientSize = new System.Drawing.Size(256, 285);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.name);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.okButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "EditRemoteAccess";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Remote access detail";
@@ -215,5 +238,7 @@
         private System.Windows.Forms.TextBox login;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button passwordButton;
+        private System.Windows.Forms.TextBox resource;
+        private System.Windows.Forms.Label label2;
     }
 }

@@ -17,7 +17,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+                return ParamLogin | ParamPassword | ParamHost | ParamPort | ParamResource;
             }
         }
 
@@ -27,35 +27,36 @@ namespace Teamlauncher.Protocol
             this.secure = secure;
             name = (secure ? "https" : "http");
             defaultPort = (secure ? 443 : 80);
+
+            Trace.WriteLine("Protocol module " + name + " loaded");
         }
 
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
-            String URL = (secure ? "https" : "http") + "://";
+            string URL = (secure ? "https" : "http") + "://";
 
-            switch (paramSet)
+            if ((paramSet & ProtocolType.ParamLogin) != 0)
             {
-                case ProtocolType.ParamHost:
-                    URL += String.Format("{0}", host);
-                    break;
-                case ProtocolType.ParamHost | ProtocolType.ParamLogin:
-                    URL += String.Format("{0}@{1}", Uri.EscapeDataString(login), host);
-                    break;
-                case ProtocolType.ParamHost | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
-                    URL += String.Format("{0}:{1}@{2}",
-                        Uri.EscapeDataString(login), Uri.EscapeDataString(password), host);
-                    break;
-                case ProtocolType.ParamHost | ProtocolType.ParamPort:
-                    URL += String.Format("{0}:{1}", host, port);
-                    break;
-                case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin:
-                    URL += String.Format("{0}@{1}:{2}", Uri.EscapeDataString(login), host, port);
-                    break;
-                case ProtocolType.ParamHost | ProtocolType.ParamPort | ProtocolType.ParamLogin | ProtocolType.ParamPassword:
-                    URL += String.Format("{0}:{1}@{2}:{3}",
-                        Uri.EscapeDataString(login), Uri.EscapeDataString(password), host, port);
-                    break;
+                if ((paramSet & ProtocolType.ParamPassword) != 0)
+                {
+                    URL += String.Format("{0}:{1}@", Uri.EscapeDataString(login), Uri.EscapeDataString(password));
+                }
+                else
+                {
+                    URL += String.Format("{0}@", Uri.EscapeDataString(login));
+                }
             }
+            URL += host;
+
+            if ((paramSet & ProtocolType.ParamPort) != 0)
+            {
+                URL += String.Format(":{0}", port);
+            }
+            if ((paramSet & ProtocolType.ParamResource) != 0)
+            {
+                URL += String.Format("/{0}", resource);
+            }
+
             URL = "\"" + URL + "\"";
 
             Process.Start(URL);

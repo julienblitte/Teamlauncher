@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,11 +9,10 @@ using System.Windows.Forms;
 
 namespace Teamlauncher.Protocol
 {
-    class ProtoFTP : ProtocolType
+    class ProtoRTSP : ProtocolType
     {
         protected string clientExe;
         protected string clientVer;
-        protected bool secure;
 
         protected bool is64;
 
@@ -26,25 +24,25 @@ namespace Teamlauncher.Protocol
             }
         }
 
-        public ProtoFTP(bool secure = true)
+        public ProtoRTSP()
         {
-            icon = Properties.Resources.ftp;
-            this.secure = secure;
-            name = (secure ? "ftps" : "ftp");
-            defaultPort = 21;
+            icon = Properties.Resources.rtsp;
+            name = "rtsp";
+            defaultPort = 554;
 
             /* is64 */
             is64 = Environment.Is64BitOperatingSystem;
 
+            //loaded
             Trace.WriteLine("Protocol module " + name + " loaded");
 
-            /* FileZilla */
+            /* VLC */
             try
             {
-                using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"Microsoft\Windows\CurrentVersion\Uninstall\FileZilla Client"))
+                using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\" + (is64 ? @"Wow6432Node\" : "") + @"VideoLAN\VLC"))
                 {
-                    clientExe = (string)registryKey.GetValue("InstallLocation");
-                    clientVer = (string)registryKey.GetValue("DisplayVersion");
+                    clientExe = (string)registryKey.GetValue(null);
+                    clientVer = (string)registryKey.GetValue("Version");
                 }
                 if (clientExe != "")
                 {
@@ -52,7 +50,6 @@ namespace Teamlauncher.Protocol
                     {
                         clientExe = clientExe.Substring(1, clientExe.Length - 2);
                     }
-					clientExe = Path.Combine(clientExe, "filezilla.exe");
                 }
             }
             catch (Exception)
@@ -60,11 +57,12 @@ namespace Teamlauncher.Protocol
                 clientExe = "";
             }
         }
+
         public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             if (clientExe != "")
             {
-                string URL = (secure ? "sftp" : "ftp") + "://";
+                string URL = "rtsp://";
 
                 if ((paramSet & ProtocolType.ParamLogin) != 0)
                 {
@@ -77,7 +75,7 @@ namespace Teamlauncher.Protocol
                         URL += String.Format("{0}@", Uri.EscapeDataString(login));
                     }
                 }
-                URL += ProtocolType.ParamHost;
+                URL += host;
 
                 if ((paramSet & ProtocolType.ParamPort) != 0)
                 {
@@ -91,10 +89,6 @@ namespace Teamlauncher.Protocol
                 URL = "\"" + URL + "\"";
 
                 Process.Start(clientExe, URL);
-            }
-            else
-            {
-                MessageBox.Show("Unable to find installed version of FileZilla!\n");
             }
         }
     }

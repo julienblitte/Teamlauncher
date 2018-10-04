@@ -32,8 +32,6 @@ namespace Teamlauncher
 
         private void ok_Click(object sender, EventArgs e)
         {
-            string master;
-
             if ((name.Text == "") || (host.Text == "") || (protocol.SelectedIndex < 0))
             {
                 MessageBox.Show("Name, host or protocol cannot be empty", "Error editing remote access", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -48,6 +46,7 @@ namespace Teamlauncher
             RemoteDetail.login = (login.Text != "" ? login.Text : null);
             RemoteDetail.password = (password != "" ? password : null);
             RemoteDetail.port = (int)port.Value;
+            RemoteDetail.resource = (resource.Text != "" ? resource.Text : null);
 
             name.Text = "";
             password = "";
@@ -64,9 +63,10 @@ namespace Teamlauncher
             protocol.Text = ra.protocol.name;
 
             name.Text = inName;
-            host.Text = ra.host;
+            host.Text = (ra.host != null ? ra.host : "");
             login.Text = (ra.login != null ? ra.login : "");
             port.Value = ra.port;
+            resource.Text = (ra.resource != null ? ra.resource : "");
 
             if (ra.password != null)
             {
@@ -80,11 +80,11 @@ namespace Teamlauncher
         {
             if (port.Value == defaultPort)
             {
-                port.ForeColor = Color.Gray;
+                port.ForeColor = SystemColors.ControlDark;
             }
             else
             {
-                port.ForeColor = Color.Black;
+                port.ForeColor = SystemColors.WindowText;
             }
         }
 
@@ -93,13 +93,17 @@ namespace Teamlauncher
             ProtocolType p;
             p = protocolList[protocol.Text];
 
+            defaultPort = p.defaultPort;
+            port.Value = defaultPort;
+            port.ForeColor = SystemColors.ControlDark;
+
             host.Enabled = ((p.AllowedParameters & ProtocolType.ParamHost) != 0);
             login.Enabled = ((p.AllowedParameters & ProtocolType.ParamLogin) != 0);
             port.Enabled = ((p.AllowedParameters & ProtocolType.ParamPort) != 0);
-            passwordButton.Enabled = ((p.AllowedParameters & ProtocolType.ParamPassword) != 0);
+            port.BackColor = (port.Enabled ? SystemColors.Window : SystemColors.Control);
 
-            defaultPort = p.defaultPort;
-            port.Value = defaultPort;
+            passwordButton.Enabled = ((p.AllowedParameters & ProtocolType.ParamPassword) != 0);
+            resource.Enabled = ((p.AllowedParameters & ProtocolType.ParamResource) != 0);
         }
 
 

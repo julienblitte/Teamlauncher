@@ -28,10 +28,12 @@ namespace Teamlauncher.Protocol
             name = "rdp";
             defaultPort = 3389;
 
+            Trace.WriteLine("Protocol module " + name + " loaded");
+
             clientExe = Path.Combine(Environment.SystemDirectory, "mstsc.exe");
         }
 
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             string temp = Path.GetTempFileName();
 

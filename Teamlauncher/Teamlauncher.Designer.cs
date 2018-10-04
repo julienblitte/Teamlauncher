@@ -57,6 +57,12 @@
             this.toolStripMenuItem10 = new System.Windows.Forms.ToolStripSeparator();
             this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.reloadConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fromPuTTYToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fromWinSCPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fromFilezillaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.firefoxToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fromM3uFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             this.changeMasterPasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.staysOntopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,6 +89,8 @@
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripSeparator();
             this.pasteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.remoteTeamlauncherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripSeparator();
             this.allMenuStrip.SuspendLayout();
             this.windowMenu.SuspendLayout();
             this.remoteMenuStrip.SuspendLayout();
@@ -249,6 +257,7 @@
             this.toolStripMenuItem10,
             this.configurationToolStripMenuItem,
             this.reloadConfigurationToolStripMenuItem,
+            this.importToolStripMenuItem,
             this.toolStripMenuItem7,
             this.changeMasterPasswordToolStripMenuItem,
             this.staysOntopToolStripMenuItem,
@@ -315,6 +324,56 @@
             this.reloadConfigurationToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
             this.reloadConfigurationToolStripMenuItem.Text = "&Reload configuration";
             this.reloadConfigurationToolStripMenuItem.Click += new System.EventHandler(this.reloadConfiguration);
+            // 
+            // importToolStripMenuItem
+            // 
+            this.importToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.remoteTeamlauncherToolStripMenuItem,
+            this.toolStripMenuItem12,
+            this.fromPuTTYToolStripMenuItem,
+            this.fromWinSCPToolStripMenuItem,
+            this.fromFilezillaToolStripMenuItem,
+            this.firefoxToolStripMenuItem,
+            this.fromM3uFileToolStripMenuItem});
+            this.importToolStripMenuItem.Enabled = false;
+            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
+            this.importToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.importToolStripMenuItem.Text = "&Import from";
+            // 
+            // fromPuTTYToolStripMenuItem
+            // 
+            this.fromPuTTYToolStripMenuItem.Enabled = false;
+            this.fromPuTTYToolStripMenuItem.Name = "fromPuTTYToolStripMenuItem";
+            this.fromPuTTYToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromPuTTYToolStripMenuItem.Text = "PuTTY";
+            // 
+            // fromWinSCPToolStripMenuItem
+            // 
+            this.fromWinSCPToolStripMenuItem.Enabled = false;
+            this.fromWinSCPToolStripMenuItem.Name = "fromWinSCPToolStripMenuItem";
+            this.fromWinSCPToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromWinSCPToolStripMenuItem.Text = "WinSCP";
+            // 
+            // fromFilezillaToolStripMenuItem
+            // 
+            this.fromFilezillaToolStripMenuItem.Enabled = false;
+            this.fromFilezillaToolStripMenuItem.Name = "fromFilezillaToolStripMenuItem";
+            this.fromFilezillaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromFilezillaToolStripMenuItem.Text = "FileZilla";
+            // 
+            // firefoxToolStripMenuItem
+            // 
+            this.firefoxToolStripMenuItem.Enabled = false;
+            this.firefoxToolStripMenuItem.Name = "firefoxToolStripMenuItem";
+            this.firefoxToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.firefoxToolStripMenuItem.Text = "Firefox";
+            // 
+            // fromM3uFileToolStripMenuItem
+            // 
+            this.fromM3uFileToolStripMenuItem.Enabled = false;
+            this.fromM3uFileToolStripMenuItem.Name = "fromM3uFileToolStripMenuItem";
+            this.fromM3uFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromM3uFileToolStripMenuItem.Text = "M3u file";
             // 
             // toolStripMenuItem7
             // 
@@ -510,6 +569,17 @@
             this.pasteToolStripMenuItem1.Text = "&Paste";
             this.pasteToolStripMenuItem1.Click += new System.EventHandler(this.paste);
             // 
+            // remoteTeamlauncherToolStripMenuItem
+            // 
+            this.remoteTeamlauncherToolStripMenuItem.Name = "remoteTeamlauncherToolStripMenuItem";
+            this.remoteTeamlauncherToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.remoteTeamlauncherToolStripMenuItem.Text = "Remote";
+            // 
+            // toolStripMenuItem12
+            // 
+            this.toolStripMenuItem12.Name = "toolStripMenuItem12";
+            this.toolStripMenuItem12.Size = new System.Drawing.Size(149, 6);
+            // 
             // Teamlauncher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -588,6 +658,14 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem10;
         private System.Windows.Forms.ToolStripMenuItem startupAutomaticallyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem staysOntopToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fromPuTTYToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fromWinSCPToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fromFilezillaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem firefoxToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fromM3uFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem remoteTeamlauncherToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem12;
     }
 }
 

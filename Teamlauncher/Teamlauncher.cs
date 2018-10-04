@@ -59,7 +59,8 @@ namespace Teamlauncher
             registerProtocol(new ProtocolTelnet());
             registerProtocol(new ProtoAnyDesk());
             registerProtocol(new ProtoSerial());
-            
+            registerProtocol(new ProtoRTSP());
+
             Trace.WriteLine("Current mode is "+ currentMode.ToString());
             if (currentMode == networkMode.debug)
             {
@@ -345,12 +346,17 @@ namespace Teamlauncher
             }
             else
             {
-                using (File.Create(databaseFile))
+                Trace.WriteLine("Configuration file " + databaseFile + " does not exists, will try to create new one.");
+                try
                 {
-                    Trace.WriteLine("Configuration file " + databaseFile + " does not exists, created.");
+                    File.WriteAllText(databaseFile, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<folder name=\"servers\">\n</folder>");
+                    Trace.WriteLine("Configuration file " + databaseFile + " created.");
+                }
+                catch(Exception ex)
+                {
+                    Trace.WriteLine("Error creating configuration file: " + ex.ToString());
                 }
             }
-
         }
 
         private void addXmlNode(XmlNode inXmlNode, TreeNodeAccess inTreeNode)
@@ -406,6 +412,7 @@ namespace Teamlauncher
 
                         if (inXmlNode.Attributes["host"] != null)
                         {
+                            /* Do we need to use WebUtility.HtmlDecode to decode? */
                             RemoteAccess access = new RemoteAccess();
                             access.login = inXmlNode.Attributes["login"]?.Value;
                             access.host = inXmlNode.Attributes["host"]?.Value;
@@ -416,6 +423,8 @@ namespace Teamlauncher
                             }
                             access.password = inXmlNode.Attributes["password"]?.Value;
                             access.protocol = rp;
+                            access.resource = inXmlNode.Attributes["resource"]?.Value;
+
                             // TODO: find better way using direclty the constructor of TreeNodeAccess
                             inTreeNode.remoteAccess = access;
                         }
@@ -451,6 +460,7 @@ namespace Teamlauncher
             if ((ra.login != null) && (ra.login != "")) paramSet |= ProtocolType.ParamLogin;
             if ((ra.host != null) && (ra.host != "")) paramSet |= ProtocolType.ParamHost;
             if (ra.port != ra.protocol.defaultPort) paramSet |= ProtocolType.ParamPort;
+            if ((ra.resource != null) && (ra.resource != "")) paramSet |= ProtocolType.ParamResource;
 
             localPassword = "";
             if ((ra.password != null) && (ra.password != ""))
@@ -492,7 +502,7 @@ namespace Teamlauncher
 
             try
             {
-                ra.protocol.run(ra.login, localPassword, ra.host, ra.port, paramSet);
+                ra.protocol.run(paramSet, ra.login, localPassword, ra.host, ra.port, ra.resource);
             }
             catch (Exception ex)
             {
@@ -616,8 +626,8 @@ namespace Teamlauncher
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
             if (node == null) /* no node selected */
-            {
-                serverTreeview.Nodes[0].Nodes.Add(newNode);
+                            {
+                                serverTreeview.Nodes[0].Nodes.Add(newNode);
             }
             else if (node.isFolder())  /* folder selected */
             {
@@ -650,22 +660,26 @@ namespace Teamlauncher
             {
                 ra = currentNode.remoteAccess;
                 result = indent;
-                result += String.Format("<remote name=\"{0}\" protocol=\"{1}\"", currentNode.Text, ra.protocol.name);
+                result += String.Format("<remote name=\"{0}\" protocol=\"{1}\"", WebUtility.HtmlEncode(currentNode.Text), ra.protocol.name);
                 if ((ra.login != null) && (ra.login != ""))
                 {
-                    result += String.Format(" login=\"{0}\"", ra.login);
+                    result += String.Format(" login=\"{0}\"", WebUtility.HtmlEncode(ra.login));
                 }
                 if ((ra.password != null) && (ra.password != ""))
                 {
-                    result += String.Format(" password=\"{0}\"", ra.password);
+                    result += String.Format(" password=\"{0}\"", WebUtility.HtmlEncode(ra.password));
                 }
                 if ((ra.host != null) && (ra.host != ""))
                 {
-                    result += String.Format(" host=\"{0}\"", ra.host);
+                    result += String.Format(" host=\"{0}\"", WebUtility.HtmlEncode(ra.host));
                 }
                 if (ra.port != ra.protocol.defaultPort)
                 {
                     result += String.Format(" port=\"{0}\"", ra.port);
+                }
+                if ((ra.resource != null) && (ra.resource != ""))
+                {
+                    result += String.Format(" resource=\"{0}\"", WebUtility.HtmlEncode(ra.resource));
                 }
                 result += " />\n";
             }
@@ -675,11 +689,11 @@ namespace Teamlauncher
                 if ((level == 0) && (MasterPassword.getInstance().hash != null))
                 {
                     result = indent + String.Format("<folder name=\"{0}\" hash=\"{1}\">\n",
-                        currentNode.Text, MasterPassword.getInstance().hash);
+                        WebUtility.HtmlEncode(currentNode.Text), MasterPassword.getInstance().hash);
                 }
                 else
                 {
-                    result = indent + String.Format("<folder name=\"{0}\">\n", currentNode.Text);
+                    result = indent + String.Format("<folder name=\"{0}\">\n", WebUtility.HtmlEncode(currentNode.Text));
                 }
 
                 foreach (TreeNodeAccess subNode in currentNode.Nodes)

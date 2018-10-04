@@ -19,7 +19,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamHost | ParamPort;
+                return ParamHost;
             }
         }
 
@@ -28,6 +28,8 @@ namespace Teamlauncher.Protocol
             icon = Properties.Resources.serial;
             name = "serial";
             defaultPort = 1;
+
+            Trace.WriteLine("Protocol module " + name + " loaded");
 
             if (File.Exists(Properties.Settings.Default.Putty))
             {
@@ -38,7 +40,7 @@ namespace Teamlauncher.Protocol
                 clientExe = "";
             }
         }
-        public override void run(string login, string password, string host, int port, int paramSet)
+        public override void run(int paramSet, string login, string password, string host, int port, string resource)
         {
             string[] serialPortList;
             
