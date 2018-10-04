@@ -12,8 +12,6 @@ using System.Windows.Forms;
 using System.Xml;
 using Teamlauncher.Protocol;
 
-//TODO: config to change by registry
-
 namespace Teamlauncher
 {
     public partial class Teamlauncher : Form
@@ -26,6 +24,8 @@ namespace Teamlauncher
         protected ImageList iconList;
         protected Dictionary<string, ProtocolType> protocols;
         protected EditRemoteAccess editDialog;
+
+        private const int STYLE_EFFECT_BORDER = 16;
 
         private enum networkMode { single, server, client, debug };
         private networkMode currentMode;
@@ -194,7 +194,7 @@ namespace Teamlauncher
 
                 databaseFile = reg.readString("Database");
                 // make sure we actually have a database file
-                if (databaseFile == "" || !File.Exists(databaseFile))
+                if (databaseFile == "")
                 {
                     // should be in roaming app data 
                     databaseFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "teamlauncher.xml");
@@ -207,15 +207,25 @@ namespace Teamlauncher
                     }
                     else if (File.Exists(programFile))
                     {
+                        Trace.WriteLine(String.Format("Trying to migrate {0} to {1}", programFile, databaseFile));
                         // if no database, move the one in application folder
                         try
                         {
-                            File.Move(programFile, databaseFile);
-                            reg.writeString("Database", databaseFile);
+                            File.Copy(programFile, databaseFile);
+                            if (File.Exists(databaseFile))
+                            {
+                                reg.writeString("Database", databaseFile);
+                            }
+                            else
+                            {
+                                Trace.WriteLine(String.Format("Error migrate file, rolling back to {0}.", programFile));
+                                databaseFile = programFile;
+                            }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            Trace.WriteLine(String.Format("Database file copy {0} to {1} failed.", programFile, databaseFile));
+                            Trace.WriteLine(String.Format("Error: database file move {0} to {1} failed.", programFile, databaseFile));
+                            MessageBox.Show(ex.ToString());
                         }
                     }
                 }
@@ -234,8 +244,9 @@ namespace Teamlauncher
                 Trace.WriteLine(String.Format("Window position: trying restore to [({0},{1}),({2},{3})]",
                     x, y, x + w, y + h));
 
-                topLeft = new Point(x+1, y+1);
-                bottomRight = new Point(x + w -1, y + h -1);
+
+                topLeft = new Point(x + STYLE_EFFECT_BORDER, y + STYLE_EFFECT_BORDER);
+                bottomRight = new Point(x + w -STYLE_EFFECT_BORDER, y + h -STYLE_EFFECT_BORDER);
 
                 monitor1 = onMonitor(topLeft);
                 monitor2 = onMonitor(bottomRight);
@@ -698,7 +709,7 @@ namespace Teamlauncher
             }
 
             // delete old Backup
-            backups = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "teamlauncher.xml.????-??-??");
+            backups = Directory.GetFiles(Path.GetDirectoryName(databaseFile), "teamlauncher.xml.????-??-??");
             regBackupFile = new Regex("(2[0-9]{3})-([0-9]{2})-([0-9]{2})$");
             dateBackupFile = new DateTime();
             foreach (string oldBackupConfigFile in backups)
@@ -1171,7 +1182,7 @@ namespace Teamlauncher
                 }
                 else // click to check
                 {
-                    Keyrun.SetValue("Teamlauncher", "\"" + Assembly.GetEntryAssembly().Location + "\" - startup");
+                    Keyrun.SetValue("Teamlauncher", "\"" + Assembly.GetEntryAssembly().Location + "\" /startup");
                     startupAutomaticallyToolStripMenuItem.Checked = true;
                 }
             }

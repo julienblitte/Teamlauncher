@@ -23,8 +23,10 @@ namespace Teamlauncher
         {
             Process runningInstance;
             bool startup;
+            GetOptions opt;
 
-            startup = args.Contains<string>("-startup");
+            opt = new GetOptions(args);
+            startup = (opt.isOption("startup", OptionPrefix.anyPrefix) >= 0);
 
             // Teamlauncher already running ?
             runningInstance = ProgramSingleRun.GetRunningInstance();
