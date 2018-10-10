@@ -77,7 +77,7 @@ namespace Teamlauncher.Protocol
                         URL += String.Format("{0}@", Uri.EscapeDataString(login));
                     }
                 }
-                URL += ProtocolType.ParamHost;
+                URL += host;
 
                 if ((paramSet & ProtocolType.ParamPort) != 0)
                 {
