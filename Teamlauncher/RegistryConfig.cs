@@ -10,8 +10,22 @@ namespace Teamlauncher
 {
     class RegistryConfig : IDisposable
     {
-        protected const string REGISTRY_CONFIG_PATH = @"Software\Teamlauncher";
+        protected const string REGISTRY_PATH = @"Software\Teamlauncher";
         private RegistryKey configKey;
+
+        public const string REGISTRY_KEY_LOCATION_X = "LocationX";
+        public const string REGISTRY_KEY_LOCATION_Y = "LocationY";
+        public const string REGISTRY_KEY_WIN_HEIGHT = "WindowHeight";
+        public const string REGISTRY_KEY_WIN_WIDTH = "WindowWidth";
+        public const string REGISTRY_KEY_FOLDING = "Folding";
+        public const string REGISTRY_KEY_EDITOR = "Editor";
+        public const string REGISTRY_KEY_SERVER = "server";
+        public const string REGISTRY_KEY_PORT = "port";
+        public const string REGISTRY_KEY_PASSWORD = "password";
+        public const string REGISTRY_KEY_MODE = "workingMode";
+        public const string REGISTRY_KEY_DATABASE = "Database";
+        public const string REGISTRY_KEY_CLOSETIP = "closeTip";
+        public const string REGISTRY_KEY_WIN_TOPMOST = "stayOnTop";
 
         public RegistryConfig()
         {
@@ -19,7 +33,7 @@ namespace Teamlauncher
 
             if (openConfigKey() == null)
             {
-                Trace.WriteLine("Registry: unable to access to '" + REGISTRY_CONFIG_PATH + "'");
+                Trace.WriteLine("Registry: unable to access to '" + REGISTRY_PATH + "'");
             }
         }
 
@@ -28,10 +42,10 @@ namespace Teamlauncher
             if (configKey != null)
                 return configKey;
 
-            configKey = Registry.CurrentUser.OpenSubKey(REGISTRY_CONFIG_PATH, true);
+            configKey = Registry.CurrentUser.OpenSubKey(REGISTRY_PATH, true);
             if (configKey == null)
             {
-                configKey = Registry.CurrentUser.CreateSubKey(REGISTRY_CONFIG_PATH);
+                configKey = Registry.CurrentUser.CreateSubKey(REGISTRY_PATH);
             }
 
             return configKey;

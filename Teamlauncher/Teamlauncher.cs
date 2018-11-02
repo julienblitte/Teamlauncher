@@ -32,6 +32,8 @@ namespace Teamlauncher
 
         private const int MAX_BACKUP_KEEY_DAYS = 7;
 
+        private string foldingState;
+
         public Teamlauncher(bool visible = true)
         {
             InitializeComponent();
@@ -42,7 +44,7 @@ namespace Teamlauncher
 
             using (RegistryConfig reg = new RegistryConfig())
             {
-                currentMode = (networkMode)reg.readInteger("workingMode");
+                currentMode = (networkMode)reg.readInteger(RegistryConfig.REGISTRY_KEY_MODE);
             }
 
             protocols = new Dictionary<string, ProtocolType>();
@@ -136,10 +138,13 @@ namespace Teamlauncher
             {
                 using (RegistryConfig reg = new RegistryConfig())
                 {
-                    reg.writeInteger("LocationX", this.Location.X);
-                    reg.writeInteger("LocationY", this.Location.Y);
-                    reg.writeInteger("WindowWidth", this.Width);
-                    reg.writeInteger("WindowHeight", this.Height);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_LOCATION_X, this.Location.X);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_LOCATION_Y, this.Location.Y);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_WIDTH, this.Width);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_HEIGHT, this.Height);
+
+                    foldingState = serializeFoldingState();
+                    reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
                 }
             }
 
@@ -175,12 +180,14 @@ namespace Teamlauncher
             // load configuration from registry
             using (RegistryConfig reg = new RegistryConfig())
             {
-                x = reg.readInteger("LocationX");
-                y = reg.readInteger("LocationY");
-                h = reg.readInteger("WindowHeight");
-                w = reg.readInteger("WindowWidth");
+                x = reg.readInteger(RegistryConfig.REGISTRY_KEY_LOCATION_X);
+                y = reg.readInteger(RegistryConfig.REGISTRY_KEY_LOCATION_Y);
+                h = reg.readInteger(RegistryConfig.REGISTRY_KEY_WIN_HEIGHT);
+                w = reg.readInteger(RegistryConfig.REGISTRY_KEY_WIN_WIDTH);
 
-                editor = reg.readString("Editor");
+                foldingState = reg.readString(RegistryConfig.REGISTRY_KEY_FOLDING);
+
+                editor = reg.readString(RegistryConfig.REGISTRY_KEY_EDITOR);
                 if (editor == "")
                 {
                     // try to get better editor than notepad (notpead++ only for now)
@@ -190,10 +197,10 @@ namespace Teamlauncher
                     {
                         editor = "notepad++.exe";
                     }
-                    reg.writeString("Editor", editor);
+                    reg.writeString(RegistryConfig.REGISTRY_KEY_EDITOR, editor);
                 }
 
-                databaseFile = reg.readString("Database");
+                databaseFile = reg.readString(RegistryConfig.REGISTRY_KEY_DATABASE);
                 // make sure we actually have a database file
                 if (databaseFile == "")
                 {
@@ -204,7 +211,7 @@ namespace Teamlauncher
 
                     if (File.Exists(databaseFile))
                     {
-                        reg.writeString("Database", databaseFile);
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
                     }
                     else if (File.Exists(programFile))
                     {
@@ -215,7 +222,7 @@ namespace Teamlauncher
                             File.Copy(programFile, databaseFile);
                             if (File.Exists(databaseFile))
                             {
-                                reg.writeString("Database", databaseFile);
+                                reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
                             }
                             else
                             {
@@ -233,11 +240,15 @@ namespace Teamlauncher
             }
 
             reloadDatabase();
+            if (foldingState != "")
+            {
+                restoreFoldingState(foldingState);
+            }
 
             trayMenu.MenuItems.Add(0, connectMenu);
 
             // try to restore window position
-            if (h > 0 && w > 0)
+            if (h > STYLE_EFFECT_BORDER && w > STYLE_EFFECT_BORDER)
             {
                 Point topLeft, bottomRight;
                 int monitor1, monitor2;
@@ -277,7 +288,11 @@ namespace Teamlauncher
 
         private void reloadDatabase()
         {
+            string foldingBackup;
+
             Trace.WriteLine("Teamlauncher.reloadDatabase()");
+
+            foldingBackup = foldingState;
 
             // Assign the ImageList to the TreeView.
             serverTreeview.ImageList = iconList;
@@ -291,13 +306,13 @@ namespace Teamlauncher
 
                 using (RegistryConfig reg = new RegistryConfig())
                 {
-                    server = reg.readString("server");
-                    port = reg.readInteger("port");
+                    server = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER);
+                    port = reg.readInteger(RegistryConfig.REGISTRY_KEY_PORT);
 
                     if (port == 0)
                         port = 0x544C;
 
-                    password = reg.readString("password");
+                    password = reg.readString(RegistryConfig.REGISTRY_KEY_PASSWORD);
                 }
                 using (var client = new WebClient())
                 {
@@ -357,6 +372,8 @@ namespace Teamlauncher
                     Trace.WriteLine("Error creating configuration file: " + ex.ToString());
                 }
             }
+
+            foldingState = foldingBackup;
         }
 
         private void addXmlNode(XmlNode inXmlNode, TreeNodeAccess inTreeNode)
@@ -437,6 +454,52 @@ namespace Teamlauncher
                 else
                 {
                     inTreeNode.Text = "invalid host";
+                }
+            }
+        }
+
+        private string serializeFoldingState()
+        {
+            string result;
+
+            result = "";
+            foreach (TreeNodeAccess ta in (TreeNodeAccess)serverTreeview.Nodes[0])
+            {
+                if (ta.isFolder())
+                {
+                    result += (ta.IsExpanded ? "+" : "-");
+                }
+            }
+
+            Trace.WriteLine("Saving folding: " + result);
+            return result;
+        }
+
+        private void restoreFoldingState(string state)
+        {
+            int i;
+
+            Trace.WriteLine("Restoring folding: " + state);
+
+            i = 0;
+            foreach (TreeNodeAccess ta in (TreeNodeAccess)serverTreeview.Nodes[0])
+            {
+                if (ta.isFolder())
+                {
+                    if (i >= state.Length)
+                    {
+                        break;
+                    }
+
+                    if (state[i] == '+')
+                    {
+                        ta.Expand();
+                    }
+                    else
+                    {
+                        ta.Collapse();
+                    }
+                    i++;
                 }
             }
         }
@@ -555,21 +618,27 @@ namespace Teamlauncher
         {
             using (RegistryConfig reg = new RegistryConfig())
             {
-                reg.writeInteger("LocationX", this.Location.X);
-                reg.writeInteger("LocationY", this.Location.Y);
-                reg.writeInteger("WindowWidth", this.Width);
-                reg.writeInteger("WindowHeight", this.Height);
+                if (WindowState != FormWindowState.Minimized)
+                {
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_LOCATION_X, this.Location.X);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_LOCATION_Y, this.Location.Y);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_WIDTH, this.Width);
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_HEIGHT, this.Height);
+                }
+
+                foldingState = serializeFoldingState();
+                reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
 
                 Visible = false;
                 e.Cancel = true;
 
-                if (!reg.readBool("closeTip"))
+                if (!reg.readBool(RegistryConfig.REGISTRY_KEY_CLOSETIP))
                 {
                     trayIcon.BalloonTipText = "Teamlauncher is still working...";
                     trayIcon.BalloonTipTitle = "Teamlauncher";
                     trayIcon.BalloonTipIcon = ToolTipIcon.Info;
                     trayIcon.ShowBalloonTip(300);
-                    reg.writeBool("closeTip", true);
+                    reg.writeBool(RegistryConfig.REGISTRY_KEY_CLOSETIP, true);
                 }
             }
         }
@@ -1221,9 +1290,9 @@ namespace Teamlauncher
                 }
                 BringToFront();
                 Activate();
-
-                serverTreeview.ExpandAll();
                 serverTreeview.Focus();
+
+                restoreFoldingState(foldingState);
             }
         }
 
@@ -1235,27 +1304,44 @@ namespace Teamlauncher
             {
                 if (sender == null) // only set menu check state
                 {
-                    staysOntopToolStripMenuItem.Checked = reg.readBool("stayOnTop");
+                    staysOntopToolStripMenuItem.Checked = reg.readBool(RegistryConfig.REGISTRY_KEY_WIN_TOPMOST);
                 }
-                else if (staysOntopToolStripMenuItem.Checked) // click to uncheck
+                else
                 {
-                    reg.writeBool("stayOnTop", false);
-                    staysOntopToolStripMenuItem.Checked = false;
-                }
-                else // click to check
-                {
-                    reg.writeBool("stayOnTop", true);
-                    staysOntopToolStripMenuItem.Checked = true;
+                    foldingState = serializeFoldingState();
+
+                    if (staysOntopToolStripMenuItem.Checked) // click to uncheck
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_TOPMOST, false);
+                        staysOntopToolStripMenuItem.Checked = false;
+                    }
+                    else // click to check
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_TOPMOST, true);
+                        staysOntopToolStripMenuItem.Checked = true;
+                    }
+
+                    reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
                 }
             }
 
             TopMost = staysOntopToolStripMenuItem.Checked;
             ShowInTaskbar = !TopMost;
+
+            if (sender != null)
+            {
+                restoreFoldingState(foldingState);
+            }
         }
 
         void onDatabaseUpdate()
         {
             saveDatabase();
+        }
+
+        private void serverTreeview_FoldingChange(object sender, TreeViewEventArgs e)
+        {
+            //foldingState = serializeFoldingState();
         }
     }
 }

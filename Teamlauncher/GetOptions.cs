@@ -27,8 +27,8 @@ namespace Teamlauncher
             prefixes = new OptionPrefix[len];
 
             shortReg = new Regex("^-[^-].*$");
-            longReg = new Regex("^--[^-].*");
-            winReg = new Regex("^/[^/].*");
+            longReg = new Regex("^--[^-].*$");
+            winReg = new Regex("^/[^/]*$");
 
             for (i = 0; i < len; i++)
             {

@@ -3,8 +3,8 @@
   <folder name="Group 1">
     <remote protocol="ftp" name="my ftp server" login="admin" password="cGFzcw==" host="192.168.0.1" />
     <remote protocol="ftps" name="my ftps server" login="admin" password="cGFzcw==" host="192.168.0.2" />
-    <remote protocol="http" name="my http server" login="admin" password="cGFzcw==" host="192.168.0.3" />
-    <remote protocol="https" name="my https server" login="admin" password="cGFzcw==" host="192.168.0.4" />
+    <remote protocol="http" name="my http server" login="admin" password="cGFzcw==" host="192.168.0.3" resource="index.html" />
+    <remote protocol="https" name="my https server" login="admin" password="cGFzcw==" host="192.168.0.4" resource="index.html" />
     <remote protocol="rdp" name="my remote desktop access" login="admin" password="cGFzcw==" host="192.168.0.5" />
     <remote protocol="scp" name="my scp access" login="admin" password="cGFzcw==" host="192.168.0.6" />
     <folder name="Subgroup a">
@@ -16,6 +16,7 @@
       <remote protocol="telnet" name="my telnet access" login="" host="192.168.0.9" />
       <remote protocol="anydesk" name="my anydesk access" login="" password="cGFzcw==" host="mycomputer@ad" />
       <remote protocol="serial" name="my serial access" host="COM1" />
+	  <remote protocol="rtsp" name="my rtsp llink" host="192.168.0.10" resource="onvif-media/media.amp">
     </folder>
   </folder>
 </folder>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class TreeNodeAccess : TreeNode
+    class TreeNodeAccess : TreeNode, IEnumerable
     {
         protected RemoteAccess _remoteAccess;
         public RemoteAccess remoteAccess
@@ -78,6 +79,98 @@ namespace Teamlauncher
             }
 
             return result;
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return new TreeNodeAccessEnumerator(this);
+        }
+    }
+
+
+    class TreeNodeAccessEnumerator : IEnumerator<TreeNodeAccess>
+    {
+        private TreeNodeAccess _current;
+        private bool started;
+
+        object IEnumerator.Current { get { return _current; } }
+        public TreeNodeAccess Current { get { return _current; } }
+
+        public TreeNodeAccessEnumerator(TreeNodeAccess current)
+        {
+            _current = current;
+            started = false;
+        }
+
+        bool IEnumerator.MoveNext()
+        {
+            TreeNodeAccess parent;
+            TreeNodeAccess next;
+            int index;
+
+            parent = (TreeNodeAccess)_current.Parent;
+            next = (TreeNodeAccess)_current.NextNode;
+            index = _current.Index;
+
+            if (!started)
+            {
+                started = true;
+                return true;
+            }
+
+            // there is child(s), goes into recursely
+            if (_current.Nodes.Count != 0)
+            {
+                _current = (TreeNodeAccess)_current.Nodes[0];
+                return true;
+            }
+
+            // try to get next
+            if (next != null)
+            {
+                _current = next;
+                return true;
+            }
+
+            // end of the list, go up
+            while (!_current.isRoot())
+            {
+                _current = (TreeNodeAccess)_current.Parent;
+                next = (TreeNodeAccess)_current.NextNode;
+                if (next != null)
+                {
+                    _current = next;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void IEnumerator.Reset()
+        {
+            TreeNodeAccess prev;
+
+            // go to top level
+            while (!_current.isRoot())
+            {
+                _current = (TreeNodeAccess)_current.Parent;
+            }
+
+            // select first item
+            prev = (TreeNodeAccess)_current.PrevNode;
+            while(prev != null)
+            {
+                _current = prev;
+                prev = (TreeNodeAccess)_current.PrevNode;
+            }
+
+            started = false;
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }
