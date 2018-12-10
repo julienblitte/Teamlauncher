@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Teamlauncher
 {
-    class TreeNodeAccess : TreeNode, IEnumerable
+    public class TreeNodeAccess : TreeNode, IEnumerable
     {
         protected RemoteAccess _remoteAccess;
         public RemoteAccess remoteAccess

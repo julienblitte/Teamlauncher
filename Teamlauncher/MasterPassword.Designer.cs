@@ -80,7 +80,7 @@
             this.Controls.Add(this.password);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "MasterPassword";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Master Password";
             this.TopMost = true;
             this.Shown += new System.EventHandler(this.MasterPassword_Shown);

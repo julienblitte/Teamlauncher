@@ -22,10 +22,11 @@ namespace Teamlauncher
         public const string REGISTRY_KEY_SERVER = "server";
         public const string REGISTRY_KEY_PORT = "port";
         public const string REGISTRY_KEY_PASSWORD = "password";
-        public const string REGISTRY_KEY_MODE = "workingMode";
         public const string REGISTRY_KEY_DATABASE = "Database";
         public const string REGISTRY_KEY_CLOSETIP = "closeTip";
         public const string REGISTRY_KEY_WIN_TOPMOST = "stayOnTop";
+        public const string REGISTRY_KEY_DEBUG = "debug";
+        public const string REGISTRY_KEY_MODE = "workingMode";
 
         public RegistryConfig()
         {

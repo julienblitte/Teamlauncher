@@ -58,13 +58,10 @@
             this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.reloadConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.remoteTeamlauncherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripSeparator();
             this.fromPuTTYToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fromWinSCPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fromFilezillaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.firefoxToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.fromM3uFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.modeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
             this.changeMasterPasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.staysOntopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -77,6 +74,7 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remoteMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.connectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.noPassowdToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -107,10 +105,8 @@
             this.serverTreeview.Location = new System.Drawing.Point(0, 27);
             this.serverTreeview.Name = "serverTreeview";
             this.serverTreeview.ShowNodeToolTips = true;
-            this.serverTreeview.Size = new System.Drawing.Size(214, 408);
+            this.serverTreeview.Size = new System.Drawing.Size(244, 424);
             this.serverTreeview.TabIndex = 0;
-            this.serverTreeview.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.serverTreeview_FoldingChange);
-            this.serverTreeview.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.serverTreeview_FoldingChange);
             this.serverTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.serverTreeview_AfterSelect);
             this.serverTreeview.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.serverTreeview_NodeMouseClick);
             this.serverTreeview.DoubleClick += new System.EventHandler(this.connect);
@@ -180,7 +176,7 @@
             this.helpToolStripMenuItem1});
             this.windowMenu.Location = new System.Drawing.Point(0, 0);
             this.windowMenu.Name = "windowMenu";
-            this.windowMenu.Size = new System.Drawing.Size(214, 24);
+            this.windowMenu.Size = new System.Drawing.Size(244, 24);
             this.windowMenu.TabIndex = 7;
             this.windowMenu.Text = "menuStrip1";
             // 
@@ -200,14 +196,14 @@
             // 
             this.connectToolStripMenuItem1.Name = "connectToolStripMenuItem1";
             this.connectToolStripMenuItem1.ShortcutKeyDisplayString = "Enter";
-            this.connectToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.connectToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.connectToolStripMenuItem1.Text = "&Connect";
             this.connectToolStripMenuItem1.Click += new System.EventHandler(this.connect);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(144, 6);
             // 
             // newToolStripMenuItem1
             // 
@@ -215,7 +211,7 @@
             this.remoteAccessToolStripMenuItem,
             this.folderToolStripMenuItem1});
             this.newToolStripMenuItem1.Name = "newToolStripMenuItem1";
-            this.newToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.newToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.newToolStripMenuItem1.Text = "New";
             // 
             // remoteAccessToolStripMenuItem
@@ -238,13 +234,13 @@
             // toolStripMenuItem6
             // 
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(144, 6);
             // 
             // exitToolStripMenuItem1
             // 
             this.exitToolStripMenuItem1.Name = "exitToolStripMenuItem1";
             this.exitToolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.exitToolStripMenuItem1.Text = "E&xit";
             this.exitToolStripMenuItem1.Click += new System.EventHandler(this.onExit);
             // 
@@ -260,6 +256,7 @@
             this.configurationToolStripMenuItem,
             this.reloadConfigurationToolStripMenuItem,
             this.importToolStripMenuItem,
+            this.modeMenuItem,
             this.toolStripMenuItem7,
             this.changeMasterPasswordToolStripMenuItem,
             this.staysOntopToolStripMenuItem,
@@ -330,63 +327,40 @@
             // importToolStripMenuItem
             // 
             this.importToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.remoteTeamlauncherToolStripMenuItem,
-            this.toolStripMenuItem12,
             this.fromPuTTYToolStripMenuItem,
             this.fromWinSCPToolStripMenuItem,
-            this.fromFilezillaToolStripMenuItem,
-            this.firefoxToolStripMenuItem,
-            this.fromM3uFileToolStripMenuItem});
-            this.importToolStripMenuItem.Enabled = false;
+            this.fromFilezillaToolStripMenuItem});
             this.importToolStripMenuItem.Name = "importToolStripMenuItem";
             this.importToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
             this.importToolStripMenuItem.Text = "&Import from";
             // 
-            // remoteTeamlauncherToolStripMenuItem
-            // 
-            this.remoteTeamlauncherToolStripMenuItem.Name = "remoteTeamlauncherToolStripMenuItem";
-            this.remoteTeamlauncherToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
-            this.remoteTeamlauncherToolStripMenuItem.Text = "Remote";
-            // 
-            // toolStripMenuItem12
-            // 
-            this.toolStripMenuItem12.Name = "toolStripMenuItem12";
-            this.toolStripMenuItem12.Size = new System.Drawing.Size(108, 6);
-            // 
             // fromPuTTYToolStripMenuItem
             // 
-            this.fromPuTTYToolStripMenuItem.Enabled = false;
             this.fromPuTTYToolStripMenuItem.Name = "fromPuTTYToolStripMenuItem";
-            this.fromPuTTYToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            this.fromPuTTYToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.fromPuTTYToolStripMenuItem.Text = "PuTTY";
+            this.fromPuTTYToolStripMenuItem.Click += new System.EventHandler(this.fromPuTTYToolStripMenuItem_Click);
             // 
             // fromWinSCPToolStripMenuItem
             // 
-            this.fromWinSCPToolStripMenuItem.Enabled = false;
             this.fromWinSCPToolStripMenuItem.Name = "fromWinSCPToolStripMenuItem";
-            this.fromWinSCPToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            this.fromWinSCPToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.fromWinSCPToolStripMenuItem.Text = "WinSCP";
+            this.fromWinSCPToolStripMenuItem.Click += new System.EventHandler(this.fromWinSCPToolStripMenuItem_Click);
             // 
             // fromFilezillaToolStripMenuItem
             // 
-            this.fromFilezillaToolStripMenuItem.Enabled = false;
             this.fromFilezillaToolStripMenuItem.Name = "fromFilezillaToolStripMenuItem";
-            this.fromFilezillaToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            this.fromFilezillaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.fromFilezillaToolStripMenuItem.Text = "FileZilla";
+            this.fromFilezillaToolStripMenuItem.Click += new System.EventHandler(this.fromFilezillaToolStripMenuItem_Click);
             // 
-            // firefoxToolStripMenuItem
+            // modeMenuItem
             // 
-            this.firefoxToolStripMenuItem.Enabled = false;
-            this.firefoxToolStripMenuItem.Name = "firefoxToolStripMenuItem";
-            this.firefoxToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
-            this.firefoxToolStripMenuItem.Text = "Firefox";
-            // 
-            // fromM3uFileToolStripMenuItem
-            // 
-            this.fromM3uFileToolStripMenuItem.Enabled = false;
-            this.fromM3uFileToolStripMenuItem.Name = "fromM3uFileToolStripMenuItem";
-            this.fromM3uFileToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
-            this.fromM3uFileToolStripMenuItem.Text = "M3u file";
+            this.modeMenuItem.Name = "modeMenuItem";
+            this.modeMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.modeMenuItem.Text = "&Select mode";
+            this.modeMenuItem.Click += new System.EventHandler(this.modeMenuItem_Click);
             // 
             // toolStripMenuItem7
             // 
@@ -411,7 +385,7 @@
             // 
             this.startupAutomaticallyToolStripMenuItem.Name = "startupAutomaticallyToolStripMenuItem";
             this.startupAutomaticallyToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.startupAutomaticallyToolStripMenuItem.Text = "Starts with Windows";
+            this.startupAutomaticallyToolStripMenuItem.Text = "Starts with &Windows";
             this.startupAutomaticallyToolStripMenuItem.Click += new System.EventHandler(this.autoStartupController);
             // 
             // helpToolStripMenuItem1
@@ -458,32 +432,40 @@
             // 
             this.remoteMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.connectToolStripMenuItem,
+            this.noPassowdToolStripMenuItem,
             this.toolStripMenuItem2,
             this.editToolStripMenuItem1,
             this.copyToolStripMenuItem,
             this.pasteToolStripMenuItem,
             this.deleteToolStripMenuItem});
             this.remoteMenuStrip.Name = "remoteMenuStrip";
-            this.remoteMenuStrip.Size = new System.Drawing.Size(148, 120);
+            this.remoteMenuStrip.Size = new System.Drawing.Size(211, 142);
             // 
             // connectToolStripMenuItem
             // 
             this.connectToolStripMenuItem.Name = "connectToolStripMenuItem";
             this.connectToolStripMenuItem.ShortcutKeyDisplayString = "Enter";
-            this.connectToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.connectToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.connectToolStripMenuItem.Text = "Connect";
             this.connectToolStripMenuItem.Click += new System.EventHandler(this.connect);
+            // 
+            // noPassowdToolStripMenuItem
+            // 
+            this.noPassowdToolStripMenuItem.Name = "noPassowdToolStripMenuItem";
+            this.noPassowdToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.noPassowdToolStripMenuItem.Text = "Connect (without password)";
+            this.noPassowdToolStripMenuItem.Click += new System.EventHandler(this.noPassowdToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(144, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(207, 6);
             // 
             // editToolStripMenuItem1
             // 
             this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
             this.editToolStripMenuItem1.ShortcutKeyDisplayString = "Ctrl+E";
-            this.editToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
+            this.editToolStripMenuItem1.Size = new System.Drawing.Size(210, 22);
             this.editToolStripMenuItem1.Text = "&Edit";
             this.editToolStripMenuItem1.Click += new System.EventHandler(this.editNodeItem);
             // 
@@ -491,7 +473,7 @@
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
             this.copyToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+C";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.copyToolStripMenuItem.Text = "&Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyItem);
             // 
@@ -499,7 +481,7 @@
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
             this.pasteToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+V";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.pasteToolStripMenuItem.Text = "&Paste";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.paste);
             // 
@@ -507,7 +489,7 @@
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             this.deleteToolStripMenuItem.ShortcutKeyDisplayString = "Del";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.deleteToolStripMenuItem.Text = "&Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.delete);
             // 
@@ -586,12 +568,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(214, 435);
+            this.ClientSize = new System.Drawing.Size(244, 451);
             this.Controls.Add(this.serverTreeview);
             this.Controls.Add(this.windowMenu);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.windowMenu;
-            this.MinimizeBox = false;
             this.Name = "Teamlauncher";
             this.Text = "Teamlauncher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Teamlauncher_FormClosing);
@@ -665,10 +646,8 @@
         private System.Windows.Forms.ToolStripMenuItem fromPuTTYToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fromWinSCPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fromFilezillaToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem firefoxToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem fromM3uFileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem remoteTeamlauncherToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem12;
+        private System.Windows.Forms.ToolStripMenuItem modeMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem noPassowdToolStripMenuItem;
     }
 }
 

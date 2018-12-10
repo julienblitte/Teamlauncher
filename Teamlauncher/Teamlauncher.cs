@@ -27,8 +27,13 @@ namespace Teamlauncher
 
         private const int STYLE_EFFECT_BORDER = 16;
 
-        private enum networkMode { single, server, client, debug };
+        public enum networkMode { single, client, server };
         private networkMode currentMode;
+        private string serverAddress;
+        protected int serverPort;
+
+        protected bool debug;
+        private WebServer webserver;
 
         private const int MAX_BACKUP_KEEY_DAYS = 7;
 
@@ -36,15 +41,76 @@ namespace Teamlauncher
 
         public Teamlauncher(bool visible = true)
         {
+            Trace.WriteLine("Teamlauncher.Teamlauncher()");
+
             InitializeComponent();
             createTrayIcon();
 
             iconList = new ImageList();
             iconList.Images.Add(Properties.Resources.group);
 
+            // load configuration from registry
             using (RegistryConfig reg = new RegistryConfig())
             {
+                debug = reg.readBool(RegistryConfig.REGISTRY_KEY_DEBUG);
+
+                editor = reg.readString(RegistryConfig.REGISTRY_KEY_EDITOR);
+                if (editor == "")
+                {
+                    // try to get better editor than notepad (notpead++ only for now)
+                    editor = "notepad.exe";
+                    RegistryKey npp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe");
+                    if (npp != null)
+                    {
+                        editor = "notepad++.exe";
+                    }
+                    reg.writeString(RegistryConfig.REGISTRY_KEY_EDITOR, editor);
+                }
+
+                databaseFile = reg.readString(RegistryConfig.REGISTRY_KEY_DATABASE);
+                // make sure we actually have a database file
+                if (databaseFile == "")
+                {
+                    // should be in roaming app data 
+                    databaseFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "teamlauncher.xml");
+
+                    var programFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "teamlauncher.xml");
+
+                    if (File.Exists(databaseFile))
+                    {
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
+                    }
+                    else if (File.Exists(programFile))
+                    {
+                        Trace.WriteLine(String.Format("Teamlauncher(): Trying to migrate {0} to {1}", programFile, databaseFile));
+                        // if no database, move the one in application folder
+                        try
+                        {
+                            File.Copy(programFile, databaseFile);
+                            if (File.Exists(databaseFile))
+                            {
+                                reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
+                            }
+                            else
+                            {
+                                Trace.WriteLine(String.Format("Teamlauncher(): Error migrating file, rolling back to {0}.", programFile));
+                                databaseFile = programFile;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine(String.Format("Teamlauncher(): Error happened moving database file from {0} to {1} failed.", programFile, databaseFile));
+                            MessageBox.Show(ex.ToString());
+                        }
+                    }
+                }
+
                 currentMode = (networkMode)reg.readInteger(RegistryConfig.REGISTRY_KEY_MODE);
+
+                serverAddress = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER);
+                serverPort = reg.readInteger(RegistryConfig.REGISTRY_KEY_PORT);
+                if (serverPort == 0)
+                    serverPort = 0x544C; // 21580
             }
 
             protocols = new Dictionary<string, ProtocolType>();
@@ -63,10 +129,16 @@ namespace Teamlauncher
             registerProtocol(new ProtoSerial());
             registerProtocol(new ProtoRTSP());
 
-            Trace.WriteLine("Current mode is "+ currentMode.ToString());
-            if (currentMode == networkMode.debug)
+            if (debug)
             {
+                Trace.WriteLine("Debug mode is on ");
                 registerProtocol(new ProtoDebug());
+            }
+
+            webserver = new WebServer(IPAddress.Parse("0.0.0.0"), serverPort, databaseFile);
+            if (currentMode == networkMode.server)
+            {                
+                webserver.start();
             }
 
             MasterPassword.getInstance().onCacheChanged += OnPasswordInCache;
@@ -144,7 +216,10 @@ namespace Teamlauncher
                     reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_HEIGHT, this.Height);
 
                     foldingState = serializeFoldingState();
-                    reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
+                    if (foldingState != "")
+                    {
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
+                    }
                 }
             }
 
@@ -152,7 +227,6 @@ namespace Teamlauncher
             trayIcon.Dispose();
             Environment.Exit(0);
         }
-
 
         private int onMonitor(Point pt)
         {
@@ -175,7 +249,7 @@ namespace Teamlauncher
         {
             int x, y, h, w;
 
-            Trace.WriteLine("Teamlauncher_Load()");
+            Trace.WriteLine("Teamlauncher.Teamlauncher_Load()");
 
             // load configuration from registry
             using (RegistryConfig reg = new RegistryConfig())
@@ -186,57 +260,6 @@ namespace Teamlauncher
                 w = reg.readInteger(RegistryConfig.REGISTRY_KEY_WIN_WIDTH);
 
                 foldingState = reg.readString(RegistryConfig.REGISTRY_KEY_FOLDING);
-
-                editor = reg.readString(RegistryConfig.REGISTRY_KEY_EDITOR);
-                if (editor == "")
-                {
-                    // try to get better editor than notepad (notpead++ only for now)
-                    editor = "notepad.exe";
-                    RegistryKey npp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe");
-                    if (npp != null)
-                    {
-                        editor = "notepad++.exe";
-                    }
-                    reg.writeString(RegistryConfig.REGISTRY_KEY_EDITOR, editor);
-                }
-
-                databaseFile = reg.readString(RegistryConfig.REGISTRY_KEY_DATABASE);
-                // make sure we actually have a database file
-                if (databaseFile == "")
-                {
-                    // should be in roaming app data 
-                    databaseFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "teamlauncher.xml");
-
-                    var programFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "teamlauncher.xml");
-
-                    if (File.Exists(databaseFile))
-                    {
-                        reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
-                    }
-                    else if (File.Exists(programFile))
-                    {
-                        Trace.WriteLine(String.Format("Trying to migrate {0} to {1}", programFile, databaseFile));
-                        // if no database, move the one in application folder
-                        try
-                        {
-                            File.Copy(programFile, databaseFile);
-                            if (File.Exists(databaseFile))
-                            {
-                                reg.writeString(RegistryConfig.REGISTRY_KEY_DATABASE, databaseFile);
-                            }
-                            else
-                            {
-                                Trace.WriteLine(String.Format("Error migrate file, rolling back to {0}.", programFile));
-                                databaseFile = programFile;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine(String.Format("Error: database file move {0} to {1} failed.", programFile, databaseFile));
-                            MessageBox.Show(ex.ToString());
-                        }
-                    }
-                }
             }
 
             reloadDatabase();
@@ -253,7 +276,7 @@ namespace Teamlauncher
                 Point topLeft, bottomRight;
                 int monitor1, monitor2;
 
-                Trace.WriteLine(String.Format("Window position: trying restore to [({0},{1}),({2},{3})]",
+                Trace.WriteLine(String.Format("Teamlauncher_Load(): trying restore window position to [({0},{1}),({2},{3})]",
                     x, y, x + w, y + h));
 
 
@@ -263,8 +286,8 @@ namespace Teamlauncher
                 monitor1 = onMonitor(topLeft);
                 monitor2 = onMonitor(bottomRight);
 
-                Trace.WriteLine(String.Format("Window top left ({0},{1}) is on monitor #{2}", x, y, monitor1));
-                Trace.WriteLine(String.Format("Window bottom right ({0},{1}) is on monitor #{2}", x + w, y + h, monitor2));
+                Trace.WriteLine(String.Format("Teamlauncher_Load(): window top left ({0},{1}) is on monitor #{2}", x, y, monitor1));
+                Trace.WriteLine(String.Format("Teamlauncher_Load(): window bottom right ({0},{1}) is on monitor #{2}", x + w, y + h, monitor2));
 
                 if ((monitor1 == monitor2) && (monitor1 != 0))
                 {
@@ -286,6 +309,11 @@ namespace Teamlauncher
             protocols.Add(rp.name, rp);
         }
 
+        public static string SendResponse(HttpListenerRequest request)
+        {
+            return string.Format("<HTML><BODY>My web page.<br>{0}</BODY></HTML>", DateTime.Now);
+        }
+
         private void reloadDatabase()
         {
             string foldingBackup;
@@ -300,27 +328,48 @@ namespace Teamlauncher
             // if client mode, download remote file
             if (currentMode == networkMode.client)
             {
-                string server;
-                string password;
-                int port;
+                string downloadFile;
+                long downloadSize;
 
-                using (RegistryConfig reg = new RegistryConfig())
-                {
-                    server = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER);
-                    port = reg.readInteger(RegistryConfig.REGISTRY_KEY_PORT);
-
-                    if (port == 0)
-                        port = 0x544C;
-
-                    password = reg.readString(RegistryConfig.REGISTRY_KEY_PASSWORD);
-                }
                 using (var client = new WebClient())
                 {
-                    // todo: server address
-                    // todo: server port
-                    // todo: password
-                    client.DownloadFile(String.Format("http://{0}:{1}/", server, port), databaseFile);
-                    client.Credentials = new NetworkCredential("teamlauncher", password);
+
+                    downloadFile = databaseFile + ".tmp";
+                    //client.Credentials = new NetworkCredential("teamlauncher", password);
+                    try
+                    {
+                        client.DownloadFile(String.Format("http://{0}:{1}/", serverAddress, serverPort), downloadFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                        if (File.Exists(downloadFile))
+                        {
+                            File.Delete(downloadFile);
+                        }
+                    }
+                }
+
+                if (File.Exists(downloadFile))
+                {
+                    FileInfo fi;
+
+                    fi = new FileInfo(downloadFile);
+                    downloadSize = (fi != null ? fi.Length : 0);
+
+                    if (downloadSize == 0)
+                    {
+                        File.Delete(downloadFile);
+                    }
+                    else
+                    {
+                        backupDatabase();
+                        if (File.Exists(databaseFile))
+                        {
+                            File.Delete(databaseFile);
+                        }
+                        File.Move(downloadFile, databaseFile);
+                    }
                 }
             }
 
@@ -361,15 +410,15 @@ namespace Teamlauncher
             }
             else
             {
-                Trace.WriteLine("Configuration file " + databaseFile + " does not exists, will try to create new one.");
+                Trace.WriteLine("reloadDatabase(): Configuration file " + databaseFile + " does not exists, will try to create new one.");
                 try
                 {
                     File.WriteAllText(databaseFile, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<folder name=\"servers\">\n</folder>");
-                    Trace.WriteLine("Configuration file " + databaseFile + " created.");
+                    Trace.WriteLine("reloadDatabase(): Configuration file " + databaseFile + " created.");
                 }
                 catch(Exception ex)
                 {
-                    Trace.WriteLine("Error creating configuration file: " + ex.ToString());
+                    Trace.WriteLine("reloadDatabase(): Error creating configuration file: " + ex.ToString());
                 }
             }
 
@@ -448,7 +497,7 @@ namespace Teamlauncher
                     }
                     catch (KeyNotFoundException)
                     {
-                        Trace.WriteLine("Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
+                        Trace.WriteLine("addXmlNode(): Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
                     }
                 }
                 else
@@ -462,6 +511,14 @@ namespace Teamlauncher
         {
             string result;
 
+            Trace.WriteLine("Teamlauncher.serializeFoldingState()");
+
+            if (serverTreeview.Nodes.Count == 0)
+            {
+                Trace.WriteLine("serializeFoldingState(): empty database");
+                return "";
+            }
+
             result = "";
             foreach (TreeNodeAccess ta in (TreeNodeAccess)serverTreeview.Nodes[0])
             {
@@ -471,7 +528,7 @@ namespace Teamlauncher
                 }
             }
 
-            Trace.WriteLine("Saving folding: " + result);
+            Trace.WriteLine("serializeFoldingState(): folding state is " + result);
             return result;
         }
 
@@ -479,7 +536,13 @@ namespace Teamlauncher
         {
             int i;
 
-            Trace.WriteLine("Restoring folding: " + state);
+            Trace.WriteLine("restoreFoldingState(): restoring folding " + state);
+
+            if (serverTreeview.Nodes.Count == 0)
+            {
+                Trace.WriteLine("restoreFoldingState(): empty database");
+                return;
+            }
 
             i = 0;
             foreach (TreeNodeAccess ta in (TreeNodeAccess)serverTreeview.Nodes[0])
@@ -504,7 +567,7 @@ namespace Teamlauncher
             }
         }
 
-        private bool connectFromNode(TreeNodeAccess node)
+        private bool connectFromNode(TreeNodeAccess node, bool avoidPassword = false)
         {
             int paramSet;
             string masterPassword;
@@ -526,21 +589,17 @@ namespace Teamlauncher
             if ((ra.resource != null) && (ra.resource != "")) paramSet |= ProtocolType.ParamResource;
 
             localPassword = "";
-            if ((ra.password != null) && (ra.password != ""))
+            if ((ra.password != null) && (ra.password != "") && !avoidPassword)
             {
                 masterPassword = MasterPassword.getInstance().master;
                 if (masterPassword == MasterPassword.NO_MASTER_ENTERED)
                 {
                     masterPassword = null;
-                    if (MessageBox.Show("No password entered, connect without password?", "No password", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) != DialogResult.Yes)
-                    {
-                        return true;
-                    }
+                    return true; // cancelled by user
                 }
                 else if (masterPassword == MasterPassword.NO_MASTER_ENABLED)
                 {
                     localPassword = Encoding.UTF8.GetString(Convert.FromBase64String(ra.password));
-
                     paramSet |= ProtocolType.ParamPassword;
                 }
                 else
@@ -695,8 +754,8 @@ namespace Teamlauncher
 
             node = (TreeNodeAccess)serverTreeview.SelectedNode;
             if (node == null) /* no node selected */
-                            {
-                                serverTreeview.Nodes[0].Nodes.Add(newNode);
+            {
+                serverTreeview.Nodes[0].Nodes.Add(newNode);
             }
             else if (node.isFolder())  /* folder selected */
             {
@@ -887,6 +946,12 @@ namespace Teamlauncher
             }
         }
 
+        private void errorClientMode()
+        {
+            MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+        }
+
         private void changeMasterPasswordToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string currentMaster;
@@ -895,8 +960,7 @@ namespace Teamlauncher
 
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -935,8 +999,7 @@ namespace Teamlauncher
         {
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -987,8 +1050,7 @@ namespace Teamlauncher
 
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -1022,8 +1084,7 @@ namespace Teamlauncher
 
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -1090,8 +1151,7 @@ namespace Teamlauncher
 
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -1147,10 +1207,11 @@ namespace Teamlauncher
             ItemNameDialog diag;
             TreeNodeAccess node;
 
+            Trace.WriteLine("Teamlauncher.rename()");
+
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -1194,10 +1255,11 @@ namespace Teamlauncher
             RemoteAccess ra;
             string name;
 
+            Trace.WriteLine("Teamlauncher.paste()");
+
             if (currentMode == networkMode.client)
             {
-                MessageBox.Show("You are in client mode, you must change configuration on the server", "Mode client",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
+                errorClientMode();
                 return;
             }
 
@@ -1252,6 +1314,8 @@ namespace Teamlauncher
         {
             RegistryKey Keyrun;
 
+            Trace.WriteLine("Teamlauncher.autoStartupController()");
+
             using(Keyrun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
                 if (sender == null) // only set menu check state
@@ -1273,7 +1337,7 @@ namespace Teamlauncher
 
         private void Teamlauncher_VisibleChanged(object sender, EventArgs e)
         {
-            Trace.WriteLine("Teamlauncher_VisibleChanged()");
+            Trace.WriteLine("Teamlauncher.Teamlauncher_VisibleChanged()");
 
             if (!Visible)
             {
@@ -1299,6 +1363,8 @@ namespace Teamlauncher
         private void staysOnTopController(object sender, EventArgs e)
         {
             RegistryConfig reg;
+
+            Trace.WriteLine("Teamlauncher.staysOnTopController()");
 
             using (reg = new RegistryConfig())
             {
@@ -1339,9 +1405,458 @@ namespace Teamlauncher
             saveDatabase();
         }
 
-        private void serverTreeview_FoldingChange(object sender, TreeViewEventArgs e)
+        private void modeMenuItem_Click(object sender, EventArgs e)
         {
-            //foldingState = serializeFoldingState();
+            ChangeMode cm;
+
+            cm = new ChangeMode(currentMode, serverAddress);
+            var dr = cm.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                currentMode = cm.resultMode;
+                serverAddress = cm.resultServer;
+
+                if (currentMode != networkMode.server)
+                {
+                    webserver.stop();
+                }
+                else if (currentMode == networkMode.server)
+                {
+                    webserver.start();
+                }
+
+                using (RegistryConfig reg = new RegistryConfig())
+                {
+                    reg.writeInteger(RegistryConfig.REGISTRY_KEY_MODE, (int)currentMode);
+                    if (serverAddress != "")
+                    {
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_SERVER, serverAddress);
+                    }
+                }
+            }
+        }
+
+        public void ImportValidated(TreeNodeAccess node)
+        {
+            backupDatabase();
+            serverTreeview.Nodes[0].Nodes.Add(node);
+            saveDatabase();
+        }
+
+        private void remoteTeamlauncherToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportWizard import;
+            RemoteAccessEntry[] items;
+
+            items = new RemoteAccessEntry[0];
+            import = new ImportWizard(items);
+            import.OnImport = ImportValidated;
+            import.Show();
+        }
+
+        private void noPassowdToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeNodeAccess node;
+
+            node = (TreeNodeAccess)serverTreeview.SelectedNode;
+            if (node == null)
+                return;
+
+            connectFromNode(node, true);
+        }
+
+        private void fromPuTTYToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportWizard import;
+            List<RemoteAccessEntry> ra_list;
+
+            if (currentMode == networkMode.client)
+            {
+                errorClientMode();
+                return;
+            }
+
+            ra_list = new List<RemoteAccessEntry>();
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\SimonTatham\PuTTY\Sessions"))
+                {
+                    string[] sessions;
+
+                    sessions = key.GetSubKeyNames();
+                    foreach (var sessionName in sessions)
+                    {
+                        using (RegistryKey subkey = key.OpenSubKey(sessionName))
+                        {
+                            string protocol;
+                            RemoteAccess newAccess;
+                            RemoteAccessEntry newAccessEntry;
+
+                            protocol = (string)subkey.GetValue("Protocol");
+                            if (protocol == "ssh")
+                            {
+                                string hostname, username;
+                                int port;
+                                hostname = (string)subkey.GetValue("HostName");
+                                port = (int)subkey.GetValue("PortNumber");
+                                username = (string)subkey.GetValue("UserName");
+
+                                newAccess = new RemoteAccess();
+
+                                newAccess.protocol = this.protocols["ssh"];
+                                newAccess.host = hostname;
+                                newAccess.port = port;
+                                newAccess.login = username;
+
+                                newAccessEntry.name = sessionName;
+                                newAccessEntry.access = newAccess;
+                                ra_list.Add(newAccessEntry);
+                            }
+                            else if (protocol == "telnet")
+                            {
+                                string hostname, username;
+                                int port;
+
+                                hostname = (string)subkey.GetValue("HostName");
+                                port = (int)subkey.GetValue("PortNumber");
+                                username = (string)subkey.GetValue("UserName");
+
+                                newAccess = new RemoteAccess();
+                                newAccess.protocol = this.protocols["telnet"];
+                                newAccess.host = hostname;
+                                newAccess.port = port;
+                                newAccess.login = username;
+
+                                newAccessEntry.name = sessionName;
+                                newAccessEntry.access = newAccess;
+                                ra_list.Add(newAccessEntry);
+                            }
+                            else if (protocol == "serial")
+                            {
+                                string hostname;
+
+                                hostname = (string)subkey.GetValue("SerialLine");
+
+                                newAccess = new RemoteAccess();
+                                newAccess.protocol = this.protocols["serial"];
+                                newAccess.host = hostname;
+
+                                newAccessEntry.name = sessionName;
+                                newAccessEntry.access = newAccess;
+                                ra_list.Add(newAccessEntry);
+                            }
+                        }
+                    }
+                }
+
+                import = new ImportWizard(ra_list.ToArray(), "Imported from Putty");
+                import.OnImport = ImportValidated;
+                import.Show();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(this, "Error while importing remote access from Putty:\n" + ex.Message, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        byte winscp_char_decode(ref string Str)
+        {
+            int value;
+            const byte PWALG_SIMPLE_MAGIC = 0xA3;
+
+            if (Str.Length >= 2)
+            {
+                value = Byte.Parse(Str.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+
+                byte Result = (byte)~(value ^ PWALG_SIMPLE_MAGIC);
+                Str = Str.Substring(2);
+                return Result;
+            }
+            else
+                return 0x00;
+        }
+
+        private string winscp_decode(string password, string username, string hostname)
+        {
+            List<byte> buffer;
+            int i;
+            byte Length, Flag, byPass;
+            string key;
+            const byte PWALG_SIMPLE_FLAG = 0xFF;
+
+            if ((password == null) || (password == ""))
+                return "";
+
+            key = username + hostname;
+
+            Flag = winscp_char_decode(ref password);
+            if (Flag == PWALG_SIMPLE_FLAG)
+            {
+                /* Dummy = */
+                winscp_char_decode(ref password);
+                Length = winscp_char_decode(ref password);
+            }
+            else
+                Length = Flag;
+
+            byPass = winscp_char_decode(ref password);
+
+            password = password.Substring(byPass * 2);
+
+            buffer = new List<byte>();
+            for (i = 0; i < Length; i++)
+            {
+                buffer.Add(winscp_char_decode(ref password));
+            }
+            if (Flag == PWALG_SIMPLE_FLAG)
+            {
+                if (Encoding.UTF8.GetString(buffer.ToArray(), 0, key.Length) != key)
+                    buffer.Clear();
+                else
+                    buffer.RemoveRange(0, key.Length);
+            }
+            return Encoding.UTF8.GetString(buffer.ToArray());
+        }
+
+        private void fromWinSCPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportWizard import;
+            List<RemoteAccessEntry> ra_list;
+
+            if (currentMode == networkMode.client)
+            {
+                errorClientMode();
+                return;
+            }
+
+            ra_list = new List<RemoteAccessEntry>();
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Martin Prikryl\WinSCP 2\Sessions"))
+                {
+                    string[] sessions;
+
+                    sessions = key.GetSubKeyNames();
+                    foreach (var sessionName in sessions)
+                    {
+                        using (RegistryKey subkey = key.OpenSubKey(sessionName))
+                        {
+                            RemoteAccess newAccess;
+                            RemoteAccessEntry newAccessEntry;
+                            string hostname, username, password, resource;
+                            int protocol, port;
+
+                            try
+                            {
+                                hostname = (string)subkey.GetValue("HostName");
+                            }
+                            catch (Exception)
+                            {
+                                continue;
+                            }
+
+                            try
+                            {
+                                protocol = (int)subkey.GetValue("FSProtocol");
+                            }
+                            catch (Exception)
+                            {
+                                protocol = 0;
+                            }
+                            try
+                            {
+                                port = (int)subkey.GetValue("PortNumber");
+                            }
+                            catch (Exception)
+                            {
+                                port = 0;
+                            }
+                            try
+                            {
+                                username = (string)subkey.GetValue("UserName");
+                            }
+                            catch (Exception)
+                            {
+                                username = "";
+                            }
+                            try
+                            {
+                                password = (string)subkey.GetValue("Password");
+                            }
+                            catch (Exception)
+                            {
+                                password = "";
+                            }
+                            try
+                            {
+                                resource = (string)subkey.GetValue("RemoteDirectory");
+                            }
+                            catch (Exception)
+                            {
+                                resource = "";
+                            }
+ 
+                            switch (protocol)
+                            {
+                                case 0:
+                                    newAccess = new RemoteAccess();
+
+                                    newAccess.protocol = this.protocols["scp"];
+                                    newAccess.host = hostname;
+                                    newAccess.port = port;
+                                    newAccess.login = username;
+                                    newAccess.password = winscp_decode(password, username, hostname);
+                                    newAccess.resource = resource;
+
+                                    newAccessEntry.name = sessionName;
+                                    newAccessEntry.access = newAccess;
+                                    ra_list.Add(newAccessEntry);
+                                    break;
+                                case 5:
+                                    newAccess = new RemoteAccess();
+                                    newAccess.protocol = this.protocols["ftp"];
+                                    newAccess.host = hostname;
+                                    newAccess.port = port;
+                                    newAccess.login = username;
+                                    newAccess.password = winscp_decode(password, username, hostname);
+                                    newAccess.resource = resource;
+
+                                    newAccessEntry.name = sessionName;
+                                    newAccessEntry.access = newAccess;
+                                    ra_list.Add(newAccessEntry);
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                import = new ImportWizard(ra_list.ToArray(), "Imported from WinSCP");
+                import.OnImport = ImportValidated;
+                import.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Error while importing remote access from WinSCP:\n" + ex.Message, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void filezillaXmlImport(XmlNode xmlnode, ref List<RemoteAccessEntry> ra_list)
+        {
+            XmlNode child;
+
+            if (xmlnode.Name == "Server")
+            {
+                RemoteAccess newAccess;
+                RemoteAccessEntry newAccessEntry;
+                string name, hostname, username, resource, password;
+                int port, protocol;
+                int i;
+
+                hostname = "";
+                port = 0;
+                username = "";
+                resource = "";
+                name = "";
+                password = "";
+
+                for (i=0; i < xmlnode.ChildNodes.Count; i++)
+                {
+                    child = xmlnode.ChildNodes[i];
+                    if (child.Name == "Host")
+                    {
+                        hostname = child.InnerText;
+                    }
+                    else if (child.Name == "Port")
+                    {
+                        Int32.TryParse(child.InnerText, out port);
+                    }
+                    else if (child.Name == "Protocol")
+                    {
+                        Int32.TryParse(child.InnerText, out protocol);
+                    }
+                    else if (child.Name == "User")
+                    {
+                        username = child.InnerText;
+                    }
+                    else if (child.Name == "Name")
+                    {
+                        name = child.InnerText;
+                    }
+                    else if (child.Name == "Pass" && child.Attributes[0].Value == "base64")
+                    {
+                        password = Encoding.UTF8.GetString(Convert.FromBase64String(child.InnerText));
+                    }
+                    else if (child.Name == "RemoteDir")
+                    {
+                        resource = child.InnerText;
+                    }                     
+                }
+
+                newAccess = new RemoteAccess();
+
+                newAccess.protocol = this.protocols["ftp"];
+                newAccess.host = hostname;
+                newAccess.port = port;
+                newAccess.login = username;
+                newAccess.password = password;
+                newAccess.resource = resource;
+
+                xmlnode.SelectNodes("Host");
+
+                newAccessEntry.name = name;
+                newAccessEntry.access = newAccess;
+                ra_list.Add(newAccessEntry);
+
+            }
+            //else if (xmlnode.Name == "Folder")
+            else
+            {
+                int i;
+                for (i=0; i < xmlnode.ChildNodes.Count; i++)
+                {
+                    filezillaXmlImport(xmlnode.ChildNodes[i], ref ra_list);
+                }
+            }
+        }
+
+        private void fromFilezillaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<RemoteAccessEntry> ra_list;
+            ImportWizard import;
+            XmlDocument xmldoc;
+            FileStream fs;
+            string fz_xml;
+
+            if (currentMode == networkMode.client)
+            {
+                errorClientMode();
+                return;
+            }
+
+            fz_xml = Path.Combine(Environment.GetEnvironmentVariable("appdata"), @"FileZilla\sitemanager.xml");
+
+            if (!File.Exists(fz_xml))
+            {
+                MessageBox.Show("FileZilla settings not found:\n"+fz_xml, "Filezilla import error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            ra_list = new List<RemoteAccessEntry>();
+
+            // open XML
+            fs = new FileStream(fz_xml, FileMode.Open, FileAccess.Read);
+            xmldoc = new XmlDocument();
+            xmldoc.Load(fs);
+
+            // do to: make function that browse the file
+            // generate for each folder a RemoteAccess
+            // generate for each server a RemoteAccess
+            filezillaXmlImport(xmldoc.ChildNodes[1], ref ra_list);
+
+            import = new ImportWizard(ra_list.ToArray(), "Imported from FileZilla");
+            import.OnImport = ImportValidated;
+            import.Show();
         }
     }
+    
 }

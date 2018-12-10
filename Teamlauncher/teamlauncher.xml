@@ -16,7 +16,7 @@
       <remote protocol="telnet" name="my telnet access" login="" host="192.168.0.9" />
       <remote protocol="anydesk" name="my anydesk access" login="" password="cGFzcw==" host="mycomputer@ad" />
       <remote protocol="serial" name="my serial access" host="COM1" />
-	  <remote protocol="rtsp" name="my rtsp llink" host="192.168.0.10" resource="onvif-media/media.amp">
+	    <remote protocol="rtsp" name="my rtsp llink" host="192.168.0.10" resource="onvif-media/media.amp" />
     </folder>
   </folder>
 </folder>
