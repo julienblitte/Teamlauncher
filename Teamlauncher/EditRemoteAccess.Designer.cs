@@ -88,9 +88,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(6, 138);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 13);
+            this.label2.Size = new System.Drawing.Size(125, 13);
             this.label2.TabIndex = 48;
-            this.label2.Text = "Resource";
+            this.label2.Text = "Resource / Extra params";
             // 
             // passwordButton
             // 

@@ -26,8 +26,7 @@ namespace Teamlauncher
 
         private void EditRemoteAccess_FormClosed(object sender, FormClosedEventArgs e)
         {
-            name.Text = "";
-            password = "";
+            Clear();
         }
 
         private void ok_Click(object sender, EventArgs e)
@@ -48,8 +47,6 @@ namespace Teamlauncher
             RemoteDetail.port = (int)port.Value;
             RemoteDetail.resource = (resource.Text != "" ? resource.Text : null);
 
-            name.Text = "";
-            password = "";
             DialogResult = DialogResult.OK;
         }
 
@@ -91,6 +88,11 @@ namespace Teamlauncher
         private void protocol_SelectedIndexChanged(object sender, EventArgs e)
         {
             ProtocolType p;
+
+            if (protocol.SelectedIndex < 0)
+            {
+                return;
+            }
             p = protocolList[protocol.Text];
 
             defaultPort = p.defaultPort;
@@ -140,6 +142,19 @@ namespace Teamlauncher
                     password = enc.EncryptString(cp.newPassword);
                 }
             }
+        }
+
+        public void Clear()
+        {
+            name.Text = "";
+            password = null;
+
+            host.Text = "";
+            login.Text = "";
+            port.Value = 0;
+            resource.Text = "";
+
+            protocol.SelectedIndex = -1;
         }
     }
 }

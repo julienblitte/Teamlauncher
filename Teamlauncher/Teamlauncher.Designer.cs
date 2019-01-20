@@ -89,6 +89,7 @@
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripSeparator();
             this.pasteToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.lockItemsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.allMenuStrip.SuspendLayout();
             this.windowMenu.SuspendLayout();
             this.remoteMenuStrip.SuspendLayout();
@@ -107,8 +108,11 @@
             this.serverTreeview.ShowNodeToolTips = true;
             this.serverTreeview.Size = new System.Drawing.Size(244, 424);
             this.serverTreeview.TabIndex = 0;
+            this.serverTreeview.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.serverTreeview_ItemDrag);
             this.serverTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.serverTreeview_AfterSelect);
             this.serverTreeview.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.serverTreeview_NodeMouseClick);
+            this.serverTreeview.DragDrop += new System.Windows.Forms.DragEventHandler(this.serverTreeview_DragDrop);
+            this.serverTreeview.DragEnter += new System.Windows.Forms.DragEventHandler(this.serverTreeview_DragEnter);
             this.serverTreeview.DoubleClick += new System.EventHandler(this.connect);
             this.serverTreeview.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.serverTreeview_KeyPress);
             // 
@@ -260,7 +264,8 @@
             this.toolStripMenuItem7,
             this.changeMasterPasswordToolStripMenuItem,
             this.staysOntopToolStripMenuItem,
-            this.startupAutomaticallyToolStripMenuItem});
+            this.startupAutomaticallyToolStripMenuItem,
+            this.lockItemsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -337,21 +342,21 @@
             // fromPuTTYToolStripMenuItem
             // 
             this.fromPuTTYToolStripMenuItem.Name = "fromPuTTYToolStripMenuItem";
-            this.fromPuTTYToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromPuTTYToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.fromPuTTYToolStripMenuItem.Text = "PuTTY";
             this.fromPuTTYToolStripMenuItem.Click += new System.EventHandler(this.fromPuTTYToolStripMenuItem_Click);
             // 
             // fromWinSCPToolStripMenuItem
             // 
             this.fromWinSCPToolStripMenuItem.Name = "fromWinSCPToolStripMenuItem";
-            this.fromWinSCPToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromWinSCPToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.fromWinSCPToolStripMenuItem.Text = "WinSCP";
             this.fromWinSCPToolStripMenuItem.Click += new System.EventHandler(this.fromWinSCPToolStripMenuItem_Click);
             // 
             // fromFilezillaToolStripMenuItem
             // 
             this.fromFilezillaToolStripMenuItem.Name = "fromFilezillaToolStripMenuItem";
-            this.fromFilezillaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fromFilezillaToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.fromFilezillaToolStripMenuItem.Text = "FileZilla";
             this.fromFilezillaToolStripMenuItem.Click += new System.EventHandler(this.fromFilezillaToolStripMenuItem_Click);
             // 
@@ -564,6 +569,13 @@
             this.pasteToolStripMenuItem1.Text = "&Paste";
             this.pasteToolStripMenuItem1.Click += new System.EventHandler(this.paste);
             // 
+            // lockItemsToolStripMenuItem
+            // 
+            this.lockItemsToolStripMenuItem.Name = "lockItemsToolStripMenuItem";
+            this.lockItemsToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.lockItemsToolStripMenuItem.Text = "&Lock items";
+            this.lockItemsToolStripMenuItem.Click += new System.EventHandler(this.lockItemsToolController);
+            // 
             // Teamlauncher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -648,6 +660,7 @@
         private System.Windows.Forms.ToolStripMenuItem fromFilezillaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem modeMenuItem;
         private System.Windows.Forms.ToolStripMenuItem noPassowdToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem lockItemsToolStripMenuItem;
     }
 }
 

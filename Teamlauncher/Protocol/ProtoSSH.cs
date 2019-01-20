@@ -18,7 +18,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+                return ParamLogin | ParamPassword | ParamHost | ParamPort | ParamResource;
             }
         }
 
@@ -61,6 +61,10 @@ namespace Teamlauncher.Protocol
                 if ((paramSet & ProtocolType.ParamPassword) > 0)
                 {
                     puttyParameters += String.Format(" -pw \"{0}\"", password);
+                }
+                if ((paramSet & ProtocolType.ParamResource) > 0)
+                {
+                    puttyParameters += " " + resource;
                 }
 
                 Process.Start(clientExe, puttyParameters);

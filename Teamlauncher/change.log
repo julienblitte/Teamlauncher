@@ -1,0 +1,45 @@
+2019-01-19 Julien Blitte <julien.blitte@gmail.com>
+
+* Release Teamlauncher Setup 0.7 build 2019-01-19.
+
+* Added:
+- drag and drop support;
+- extra parameters.
+
+* Fixed bugs:
+- edit protocol fields not cleared.
+
+2018-12-09 Julien Blitte <julien.blitte@gmail.com>
+
+* Release Teamlauncher Setup 0.7 build 2018-12-09.
+
+* Added:
+- server-client mode;
+- import function;
+- minimize button back.
+
+2018-10-28 Julien Blitte <julien.blitte@gmail.com>
+
+* Teamlauncher Setup 0.6 build 2018-10-28.
+
+* Added:
+- folding state save and restore;
+
+* Fixed bugs:
+- minimize window size bug.
+
+2018-10-11 Julien Blitte <julien.blitte@gmail.com>
+
+* Teamlauncher Setup 0.6 build 2018-10-11.
+
+* Fixed bugs:
+- startup;
+- scp protocol;
+- ftpprotocol.
+
+2018-10-04 Julien Blitte <julien.blitte@gmail.com>
+
+* Teamlauncher Setup 0.6 build 2018-10-04.
+
+* Added:
+- rtsp protocol.

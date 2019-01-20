@@ -748,25 +748,29 @@ namespace Teamlauncher
         }
 
 
-        private void addNode(TreeNodeAccess newNode)
+        private void addNode(TreeNodeAccess newNode, TreeNodeAccess position=null)
         {
-            TreeNodeAccess node;
+            // if position is not set, use selected node
+            if (position == null) 
+            {
+                position = (TreeNodeAccess)serverTreeview.SelectedNode;
+            }
 
-            node = (TreeNodeAccess)serverTreeview.SelectedNode;
-            if (node == null) /* no node selected */
+            /* no position defined neither no node selected */
+            if (position == null)
             {
                 serverTreeview.Nodes[0].Nodes.Add(newNode);
             }
-            else if (node.isFolder())  /* folder selected */
+            else if (position.isFolder())  /* folder selected */
             {
-                node.Nodes.Add(newNode);
+                position.Nodes.Add(newNode);
             }
             else
             {
                 int pos;
 
-                pos = node.Index + 1;
-                node.Parent.Nodes.Insert(pos, newNode);
+                pos = position.Index + 1;
+                position.Parent.Nodes.Insert(pos, newNode);
             }
 
             if (newNode.ContextMenuStrip == null)
@@ -1007,6 +1011,7 @@ namespace Teamlauncher
             {
                 editDialog = new EditRemoteAccess(protocols);
             }
+            editDialog.Clear();
             if (editDialog.ShowDialog() == DialogResult.OK)
             {
                 TreeNodeAccess newNode;
@@ -1096,7 +1101,7 @@ namespace Teamlauncher
                 return;
 
             if (MessageBox.Show("Do you really want to delete item \"" + node.Text + "\"?", "Confirm delete",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
                 if ((node.isFolder()) && (node.Nodes.Count != 0)) /* handle folder subitems */
                 {
@@ -1196,8 +1201,8 @@ namespace Teamlauncher
             }
             connectToolStripMenuItem1.Enabled = remoteAccessSelected;
             copyToolStripMenuItem1.Enabled = remoteAccessSelected;
-            pasteToolStripMenuItem2.Enabled = remoteAccessSelected;
 
+            pasteToolStripMenuItem2.Enabled = remoteAccessSelected || folderSelected;
             editToolStripMenuItem2.Enabled = remoteAccessSelected || folderSelected;
             deleteToolStripMenuItem1.Enabled = remoteAccessSelected || folderSelected;
         }
@@ -1347,6 +1352,7 @@ namespace Teamlauncher
             {
                 autoStartupController(null, new EventArgs());
                 staysOnTopController(null, new EventArgs());
+                lockItemsToolController(null, new EventArgs());
 
                 if (WindowState == FormWindowState.Minimized)
                 {
@@ -1856,6 +1862,95 @@ namespace Teamlauncher
             import = new ImportWizard(ra_list.ToArray(), "Imported from FileZilla");
             import.OnImport = ImportValidated;
             import.Show();
+        }
+
+        private void serverTreeview_ItemDrag(object sender, ItemDragEventArgs e)
+        {
+            DoDragDrop(e.Item, DragDropEffects.Move);
+        }
+
+        private void serverTreeview_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Move;
+        }
+
+        private void serverTreeview_DragDrop(object sender, DragEventArgs e)
+        {
+            Point targetPoint;
+            TreeNodeAccess targetNode, parentNode;
+            TreeNodeAccess draggedNode;
+
+            Trace.WriteLine("DragDrop()");
+
+            // Retrieve the node at the drop location.
+            targetPoint = serverTreeview.PointToClient(new Point(e.X, e.Y));
+            targetNode = (TreeNodeAccess)serverTreeview.GetNodeAt(targetPoint);
+
+            // Retrieve the node that was dragged.
+            draggedNode = (TreeNodeAccess)e.Data.GetData(typeof(TreeNodeAccess));
+
+            if (targetNode == null)
+            {
+                return;
+            }
+
+            if (currentMode == networkMode.client)
+            {
+                errorClientMode();
+                return;
+            }
+
+            // check destination is not one of child items of draggedNode
+            parentNode = targetNode;
+            while (parentNode != null)
+            {
+                if (draggedNode.Equals(parentNode))
+                {
+                    return;
+                }
+                parentNode = (TreeNodeAccess)parentNode.Parent;
+            }
+
+
+            if (MessageBox.Show("Do you really want to move item \"" + draggedNode.Text + "\"?", "Confirm item move",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            {
+                draggedNode.Remove();
+                addNode(draggedNode, targetNode);
+                saveDatabase();
+
+                targetNode.Expand();
+            }
+        }
+
+        private void lockItemsToolController(object sender, EventArgs e)
+        {
+            RegistryConfig reg;
+
+            Trace.WriteLine("Teamlauncher.lockItemsToolController()");
+
+            using (reg = new RegistryConfig())
+            {
+                if (sender == null) // only set menu check state
+                {
+                    staysOntopToolStripMenuItem.Checked = reg.readBool(RegistryConfig.REGISTRY_KEY_WIN_LOCKITEMS);
+                }
+                else
+                {
+                    if (lockItemsToolStripMenuItem.Checked) // click to uncheck
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_LOCKITEMS, false);
+                        lockItemsToolStripMenuItem.Checked = false;
+                    }
+                    else // click to check
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_LOCKITEMS, true);
+                        lockItemsToolStripMenuItem.Checked = true;
+                    }
+                }
+            }
+
+            serverTreeview.AllowDrop = !lockItemsToolStripMenuItem.Checked;
         }
     }
     
