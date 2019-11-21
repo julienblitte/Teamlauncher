@@ -83,7 +83,17 @@ namespace Teamlauncher.Protocol
                 }
                 if ((paramSet & ProtocolType.ParamResource) != 0)
                 {
-                    URL += String.Format("/{0}", resource);
+                    if (resource.Length > 1)
+                    {
+                        if (resource[0] == '/')
+                        {
+                            URL += String.Format("{0}", resource);
+                        }
+                        else
+                        {
+                            URL += String.Format("/{0}", resource);
+                        }
+                    }
                 }
 
                 URL = "\"" + URL + "\"";

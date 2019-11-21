@@ -29,7 +29,7 @@ namespace Teamlauncher
 
         public enum networkMode { single, client, server };
         private networkMode currentMode;
-        private string serverAddress;
+        private string serverAddress, serverPassword;
         protected int serverPort;
 
         protected bool debug;
@@ -41,7 +41,7 @@ namespace Teamlauncher
 
         public Teamlauncher(bool visible = true)
         {
-            Trace.WriteLine("Teamlauncher.Teamlauncher()");
+            Trace.WriteLineIf(debug, "Teamlauncher.Teamlauncher()");
 
             InitializeComponent();
             createTrayIcon();
@@ -107,7 +107,9 @@ namespace Teamlauncher
 
                 currentMode = (networkMode)reg.readInteger(RegistryConfig.REGISTRY_KEY_MODE);
 
-                serverAddress = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER);
+                serverAddress = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER_ADDRESS);
+                serverPassword = reg.readString(RegistryConfig.REGISTRY_KEY_SERVER_PASSWORD);
+
                 serverPort = reg.readInteger(RegistryConfig.REGISTRY_KEY_PORT);
                 if (serverPort == 0)
                     serverPort = 0x544C; // 21580
@@ -129,13 +131,15 @@ namespace Teamlauncher
             registerProtocol(new ProtoSerial());
             registerProtocol(new ProtoRTSP());
 
+            Trace.WriteLineIf(debug, "Debug mode is on ");
             if (debug)
             {
-                Trace.WriteLine("Debug mode is on ");
                 registerProtocol(new ProtoDebug());
             }
 
             webserver = new WebServer(IPAddress.Parse("0.0.0.0"), serverPort, databaseFile);
+            webserver.setPassword(serverPassword);
+            webserver.setDebug(debug);
             if (currentMode == networkMode.server)
             {                
                 webserver.start();
@@ -317,8 +321,11 @@ namespace Teamlauncher
         private void reloadDatabase()
         {
             string foldingBackup;
+            FileVersionInfo version;
 
-            Trace.WriteLine("Teamlauncher.reloadDatabase()");
+            Trace.WriteLineIf(debug, "Teamlauncher.reloadDatabase()");
+
+            version = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
 
             foldingBackup = foldingState;
 
@@ -335,7 +342,8 @@ namespace Teamlauncher
                 {
 
                     downloadFile = databaseFile + ".tmp";
-                    //client.Credentials = new NetworkCredential("teamlauncher", password);
+					client.Headers.Add ("user-agent", String.Format("Mozilla/4.0 (compatible; Teamlauncher/{0}.{1})", version.FileMajorPart, version.FileMinorPart));
+                    client.Credentials = new NetworkCredential(WebServer.username, serverPassword);
                     try
                     {
                         client.DownloadFile(String.Format("http://{0}:{1}/", serverAddress, serverPort), downloadFile);
@@ -410,15 +418,15 @@ namespace Teamlauncher
             }
             else
             {
-                Trace.WriteLine("reloadDatabase(): Configuration file " + databaseFile + " does not exists, will try to create new one.");
+                Trace.WriteLineIf(debug, "reloadDatabase(): Configuration file " + databaseFile + " does not exists, will try to create new one.");
                 try
                 {
                     File.WriteAllText(databaseFile, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<folder name=\"servers\">\n</folder>");
-                    Trace.WriteLine("reloadDatabase(): Configuration file " + databaseFile + " created.");
+                    Trace.WriteLineIf(debug, "reloadDatabase(): Configuration file " + databaseFile + " created.");
                 }
                 catch(Exception ex)
                 {
-                    Trace.WriteLine("reloadDatabase(): Error creating configuration file: " + ex.ToString());
+                    Trace.WriteLineIf(debug, "reloadDatabase(): Error creating configuration file: " + ex.ToString());
                 }
             }
 
@@ -497,7 +505,7 @@ namespace Teamlauncher
                     }
                     catch (KeyNotFoundException)
                     {
-                        Trace.WriteLine("addXmlNode(): Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
+                        Trace.WriteLineIf(debug, "addXmlNode(): Unrecognized protocol '" + inXmlNode.Attributes["protocol"].Value + "'");
                     }
                 }
                 else
@@ -511,11 +519,11 @@ namespace Teamlauncher
         {
             string result;
 
-            Trace.WriteLine("Teamlauncher.serializeFoldingState()");
+            Trace.WriteLineIf(debug, "Teamlauncher.serializeFoldingState()");
 
             if (serverTreeview.Nodes.Count == 0)
             {
-                Trace.WriteLine("serializeFoldingState(): empty database");
+                Trace.WriteLineIf(debug, "serializeFoldingState(): empty database");
                 return "";
             }
 
@@ -528,7 +536,7 @@ namespace Teamlauncher
                 }
             }
 
-            Trace.WriteLine("serializeFoldingState(): folding state is " + result);
+            Trace.WriteLineIf(debug, "serializeFoldingState(): folding state is " + result);
             return result;
         }
 
@@ -536,11 +544,11 @@ namespace Teamlauncher
         {
             int i;
 
-            Trace.WriteLine("restoreFoldingState(): restoring folding " + state);
+            Trace.WriteLineIf(debug, "restoreFoldingState(): restoring folding " + state);
 
             if (serverTreeview.Nodes.Count == 0)
             {
-                Trace.WriteLine("restoreFoldingState(): empty database");
+                Trace.WriteLineIf(debug, "restoreFoldingState(): empty database");
                 return;
             }
 
@@ -625,6 +633,11 @@ namespace Teamlauncher
             try
             {
                 ra.protocol.run(paramSet, ra.login, localPassword, ra.host, ra.port, ra.resource);
+
+                if (autoReduceAtConnectionToolStripMenuItem.Checked)
+                {
+                    Teamlauncher_FormReduceToTray(null, null);
+                }
             }
             catch (Exception ex)
             {
@@ -673,7 +686,7 @@ namespace Teamlauncher
             }
         }
 
-        private void Teamlauncher_FormClosing(object sender, FormClosingEventArgs e)
+        private void Teamlauncher_FormReduceToTray(object sender, FormClosingEventArgs e)
         {
             using (RegistryConfig reg = new RegistryConfig())
             {
@@ -683,13 +696,16 @@ namespace Teamlauncher
                     reg.writeInteger(RegistryConfig.REGISTRY_KEY_LOCATION_Y, this.Location.Y);
                     reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_WIDTH, this.Width);
                     reg.writeInteger(RegistryConfig.REGISTRY_KEY_WIN_HEIGHT, this.Height);
+
+                    foldingState = serializeFoldingState();
+                    reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
                 }
 
-                foldingState = serializeFoldingState();
-                reg.writeString(RegistryConfig.REGISTRY_KEY_FOLDING, foldingState);
-
                 Visible = false;
-                e.Cancel = true;
+                if (e != null)
+                {
+                    e.Cancel = true;
+                }
 
                 if (!reg.readBool(RegistryConfig.REGISTRY_KEY_CLOSETIP))
                 {
@@ -1212,7 +1228,7 @@ namespace Teamlauncher
             ItemNameDialog diag;
             TreeNodeAccess node;
 
-            Trace.WriteLine("Teamlauncher.rename()");
+            Trace.WriteLineIf(debug, "Teamlauncher.rename()");
 
             if (currentMode == networkMode.client)
             {
@@ -1260,7 +1276,7 @@ namespace Teamlauncher
             RemoteAccess ra;
             string name;
 
-            Trace.WriteLine("Teamlauncher.paste()");
+            Trace.WriteLineIf(debug, "Teamlauncher.paste()");
 
             if (currentMode == networkMode.client)
             {
@@ -1310,7 +1326,7 @@ namespace Teamlauncher
             }
             catch (Exception)
             {
-                Trace.WriteLine("Teamlauncher.Paste(): Url decoding error:\n"+c);
+                Trace.WriteLineIf(debug, "Teamlauncher.Paste(): Url decoding error:\n" + c);
                 return;
             }
         }
@@ -1319,7 +1335,7 @@ namespace Teamlauncher
         {
             RegistryKey Keyrun;
 
-            Trace.WriteLine("Teamlauncher.autoStartupController()");
+            Trace.WriteLineIf(debug, "Teamlauncher.autoStartupController()");
 
             using(Keyrun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
@@ -1342,7 +1358,7 @@ namespace Teamlauncher
 
         private void Teamlauncher_VisibleChanged(object sender, EventArgs e)
         {
-            Trace.WriteLine("Teamlauncher.Teamlauncher_VisibleChanged()");
+            Trace.WriteLineIf(debug, "Teamlauncher.Teamlauncher_VisibleChanged()");
 
             if (!Visible)
             {
@@ -1350,9 +1366,10 @@ namespace Teamlauncher
             }
             else
             {
-                autoStartupController(null, new EventArgs());
-                staysOnTopController(null, new EventArgs());
-                lockItemsToolController(null, new EventArgs());
+                autoStartupController(null, null);
+                staysOnTopController(null, null);
+                lockItemsToolController(null, null);
+                autoReduceAtConnectionController(null, null);
 
                 if (WindowState == FormWindowState.Minimized)
                 {
@@ -1370,7 +1387,7 @@ namespace Teamlauncher
         {
             RegistryConfig reg;
 
-            Trace.WriteLine("Teamlauncher.staysOnTopController()");
+            Trace.WriteLineIf(debug, "Teamlauncher.staysOnTopController()");
 
             using (reg = new RegistryConfig())
             {
@@ -1380,6 +1397,7 @@ namespace Teamlauncher
                 }
                 else
                 {
+                    // We have foldingState backup becaus of ShowInTaskbar:
                     foldingState = serializeFoldingState();
 
                     if (staysOntopToolStripMenuItem.Checked) // click to uncheck
@@ -1400,6 +1418,7 @@ namespace Teamlauncher
             TopMost = staysOntopToolStripMenuItem.Checked;
             ShowInTaskbar = !TopMost;
 
+            // We have foldingState backup becaus of ShowInTaskbar:
             if (sender != null)
             {
                 restoreFoldingState(foldingState);
@@ -1415,12 +1434,15 @@ namespace Teamlauncher
         {
             ChangeMode cm;
 
-            cm = new ChangeMode(currentMode, serverAddress);
+            cm = new ChangeMode(currentMode, serverAddress, serverPassword);
             var dr = cm.ShowDialog();
             if (dr == DialogResult.OK)
             {
                 currentMode = cm.resultMode;
                 serverAddress = cm.resultServer;
+                serverPassword = cm.resultPassword;
+
+                webserver.setPassword(serverPassword);
 
                 if (currentMode != networkMode.server)
                 {
@@ -1436,7 +1458,9 @@ namespace Teamlauncher
                     reg.writeInteger(RegistryConfig.REGISTRY_KEY_MODE, (int)currentMode);
                     if (serverAddress != "")
                     {
-                        reg.writeString(RegistryConfig.REGISTRY_KEY_SERVER, serverAddress);
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_SERVER_ADDRESS, serverAddress);
+                        reg.writeString(RegistryConfig.REGISTRY_KEY_SERVER_PASSWORD, serverPassword);
+
                     }
                 }
             }
@@ -1880,7 +1904,7 @@ namespace Teamlauncher
             TreeNodeAccess targetNode, parentNode;
             TreeNodeAccess draggedNode;
 
-            Trace.WriteLine("DragDrop()");
+            Trace.WriteLineIf(debug, "DragDrop()");
 
             // Retrieve the node at the drop location.
             targetPoint = serverTreeview.PointToClient(new Point(e.X, e.Y));
@@ -1911,7 +1935,6 @@ namespace Teamlauncher
                 parentNode = (TreeNodeAccess)parentNode.Parent;
             }
 
-
             if (MessageBox.Show("Do you really want to move item \"" + draggedNode.Text + "\"?", "Confirm item move",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
@@ -1927,13 +1950,26 @@ namespace Teamlauncher
         {
             RegistryConfig reg;
 
-            Trace.WriteLine("Teamlauncher.lockItemsToolController()");
+            Trace.WriteLineIf(debug, "Teamlauncher.lockItemsToolController()");
 
+            // in client mode, must be active
+            if (currentMode == networkMode.client)
+            {
+                lockItemsToolStripMenuItem.Checked = true;
+                serverTreeview.AllowDrop = false;
+
+                if (sender != null)
+                    errorClientMode();
+
+                return;
+            }
+
+            // not in client mode
             using (reg = new RegistryConfig())
             {
                 if (sender == null) // only set menu check state
                 {
-                    staysOntopToolStripMenuItem.Checked = reg.readBool(RegistryConfig.REGISTRY_KEY_WIN_LOCKITEMS);
+                    lockItemsToolStripMenuItem.Checked = reg.readBool(RegistryConfig.REGISTRY_KEY_WIN_LOCKITEMS);
                 }
                 else
                 {
@@ -1951,6 +1987,34 @@ namespace Teamlauncher
             }
 
             serverTreeview.AllowDrop = !lockItemsToolStripMenuItem.Checked;
+        }
+
+        private void autoReduceAtConnectionController(object sender, EventArgs e)
+        {
+            RegistryConfig reg;
+
+            Trace.WriteLineIf(debug, "Teamlauncher.autoReduceAtConnectionController()");
+
+            using (reg = new RegistryConfig())
+            {
+                if (sender == null) // only set menu check state
+                {
+                    autoReduceAtConnectionToolStripMenuItem.Checked = reg.readBool(RegistryConfig.REGISTRY_KEY_WIN_AUTOREDUCE);
+                }
+                else
+                {
+                    if (autoReduceAtConnectionToolStripMenuItem.Checked) // click to uncheck
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_AUTOREDUCE, false);
+                        autoReduceAtConnectionToolStripMenuItem.Checked = false;
+                    }
+                    else // click to check
+                    {
+                        reg.writeBool(RegistryConfig.REGISTRY_KEY_WIN_AUTOREDUCE, true);
+                        autoReduceAtConnectionToolStripMenuItem.Checked = true;
+                    }
+                }
+            }
         }
     }
     

@@ -21,7 +21,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamPassword | ParamHost | ParamPort;
+                return ParamPassword | ParamHost | ParamPort | ParamResource;
             }
         }
 
@@ -98,6 +98,10 @@ namespace Teamlauncher.Protocol
                         UltraVNCParameters += String.Format(" -username \"{0}\"", login);
                     }
                 }
+                if ((paramSet & ProtocolType.ParamResource) > 0)
+                {
+                    UltraVNCParameters += " " + resource;
+                }
                 Process.Start(UltraVNCExe, UltraVNCParameters);
             }
             else if (TightVNCExe != "")
@@ -119,6 +123,10 @@ namespace Teamlauncher.Protocol
                     {
                         TightVNCParameters += String.Format(" -username={0}", login);
                     }
+                }
+                if ((paramSet & ProtocolType.ParamResource) > 0)
+                {
+                    TightVNCParameters += " " + resource;
                 }
                 Process.Start(TightVNCExe, TightVNCParameters);
             }

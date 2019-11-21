@@ -19,7 +19,8 @@ namespace Teamlauncher
         public const string REGISTRY_KEY_WIN_WIDTH = "WindowWidth";
         public const string REGISTRY_KEY_FOLDING = "Folding";
         public const string REGISTRY_KEY_EDITOR = "Editor";
-        public const string REGISTRY_KEY_SERVER = "server";
+        public const string REGISTRY_KEY_SERVER_ADDRESS = "server";
+        public const string REGISTRY_KEY_SERVER_PASSWORD = "password";
         public const string REGISTRY_KEY_PORT = "port";
         public const string REGISTRY_KEY_PASSWORD = "password";
         public const string REGISTRY_KEY_DATABASE = "Database";
@@ -28,6 +29,8 @@ namespace Teamlauncher
         public const string REGISTRY_KEY_DEBUG = "debug";
         public const string REGISTRY_KEY_MODE = "workingMode";
         public const string REGISTRY_KEY_WIN_LOCKITEMS = "lockItems";
+        public const string REGISTRY_KEY_WIN_AUTOREDUCE = "autoReduce";
+        public const string REGISTRY_KEY_WEB_LOCALOPAQUE = "localOpaque";
 
         public RegistryConfig()
         {

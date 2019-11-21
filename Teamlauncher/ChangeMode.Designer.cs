@@ -36,7 +36,11 @@
             this.clientBox = new System.Windows.Forms.GroupBox();
             this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.passwordBox = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.passwordServer = new System.Windows.Forms.MaskedTextBox();
             this.clientBox.SuspendLayout();
+            this.passwordBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // singleMode
@@ -66,7 +70,7 @@
             // clientMode
             // 
             this.clientMode.AutoSize = true;
-            this.clientMode.Location = new System.Drawing.Point(12, 58);
+            this.clientMode.Location = new System.Drawing.Point(12, 56);
             this.clientMode.Name = "clientMode";
             this.clientMode.Size = new System.Drawing.Size(80, 17);
             this.clientMode.TabIndex = 2;
@@ -79,7 +83,7 @@
             // 
             this.clientServer.Location = new System.Drawing.Point(9, 32);
             this.clientServer.Name = "clientServer";
-            this.clientServer.Size = new System.Drawing.Size(201, 20);
+            this.clientServer.Size = new System.Drawing.Size(148, 20);
             this.clientServer.TabIndex = 3;
             // 
             // label1
@@ -95,15 +99,15 @@
             // 
             this.clientBox.Controls.Add(this.clientServer);
             this.clientBox.Controls.Add(this.label1);
-            this.clientBox.Location = new System.Drawing.Point(12, 81);
+            this.clientBox.Location = new System.Drawing.Point(117, 74);
             this.clientBox.Name = "clientBox";
-            this.clientBox.Size = new System.Drawing.Size(231, 68);
+            this.clientBox.Size = new System.Drawing.Size(174, 68);
             this.clientBox.TabIndex = 5;
             this.clientBox.TabStop = false;
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(13, 169);
+            this.okButton.Location = new System.Drawing.Point(12, 90);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 6;
@@ -114,19 +118,48 @@
             // cancelButton
             // 
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(168, 169);
+            this.cancelButton.Location = new System.Drawing.Point(12, 119);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 7;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             // 
+            // passwordBox
+            // 
+            this.passwordBox.Controls.Add(this.passwordServer);
+            this.passwordBox.Controls.Add(this.label2);
+            this.passwordBox.Location = new System.Drawing.Point(117, 7);
+            this.passwordBox.Name = "passwordBox";
+            this.passwordBox.Size = new System.Drawing.Size(173, 66);
+            this.passwordBox.TabIndex = 10;
+            this.passwordBox.TabStop = false;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 16);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(90, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Server Password:";
+            // 
+            // passwordServer
+            // 
+            this.passwordServer.Location = new System.Drawing.Point(9, 32);
+            this.passwordServer.Name = "passwordServer";
+            this.passwordServer.PasswordChar = '*';
+            this.passwordServer.Size = new System.Drawing.Size(147, 20);
+            this.passwordServer.TabIndex = 12;
+            // 
             // ChangeMode
             // 
+            this.AcceptButton = this.okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(253, 203);
+            this.ClientSize = new System.Drawing.Size(307, 158);
+            this.Controls.Add(this.passwordBox);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.clientBox);
@@ -134,12 +167,16 @@
             this.Controls.Add(this.serverMode);
             this.Controls.Add(this.singleMode);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "ChangeMode";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ChangeMode";
             this.TopMost = true;
             this.clientBox.ResumeLayout(false);
             this.clientBox.PerformLayout();
+            this.passwordBox.ResumeLayout(false);
+            this.passwordBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -155,5 +192,8 @@
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.TextBox clientServer;
+        private System.Windows.Forms.GroupBox passwordBox;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.MaskedTextBox passwordServer;
     }
 }

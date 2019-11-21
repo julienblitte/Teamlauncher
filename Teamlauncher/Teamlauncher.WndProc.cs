@@ -23,7 +23,7 @@ namespace Teamlauncher
                     int command = m.WParam.ToInt32() & 0xfff0;
                     if (command == SC_MINIMIZE)
                     {
-                        Teamlauncher_FormClosing(this, new FormClosingEventArgs(CloseReason.None, true));
+                        Teamlauncher_FormReduceToTray(this, new FormClosingEventArgs(CloseReason.None, true));
                         Visible = false;
                     }
                     else

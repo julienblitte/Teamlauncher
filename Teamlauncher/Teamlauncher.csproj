@@ -195,6 +195,7 @@
     </Content>
     <None Include="Resources\icon.ico" />
     <Content Include="Resources\http.png" />
+    <Content Include="Resources\keys.ico" />
     <Content Include="Resources\rdp.png" />
     <Content Include="Resources\rtsp.png" />
     <Content Include="Resources\scp.png" />

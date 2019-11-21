@@ -85,6 +85,8 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.nameInput);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "ItemNameDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Folder name";

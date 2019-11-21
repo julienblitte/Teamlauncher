@@ -14,7 +14,7 @@ namespace Teamlauncher.Protocol
         {
             get
             {
-                return ParamLogin | ParamPassword | ParamHost | ParamPort;
+                return ParamLogin | ParamPassword | ParamHost | ParamPort | ParamResource;
             }
         }
 
